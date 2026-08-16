@@ -55,6 +55,26 @@ final class GalleryController extends BaseController
         ]);
     }
 
+    /** Page de détail d'une image (partage social, focus sur les commentaires). */
+    public function show(string $id): void
+    {
+        $viewerId = (int) ($_SESSION['user_id'] ?? 0);
+        $image = Image::findForDetail((int) $id, $viewerId);
+
+        if ($image === null) {
+            http_response_code(404);
+            View::render('error/404', ['pageTitle' => 'Introuvable — Camagru']);
+            return;
+        }
+
+        $image['comments'] = Comment::findForImage((int) $image['id']);
+
+        View::render('gallery/show', [
+            'pageTitle' => 'Image de ' . $image['author'] . ' — Camagru',
+            'image' => $image,
+        ]);
+    }
+
     public function like(): void
     {
         $this->verifyCsrf();
@@ -83,7 +103,7 @@ final class GalleryController extends BaseController
             ]);
         }
 
-        $this->redirect('/gallery?page=' . $page . '#image-' . $imageId);
+        $this->redirect($this->returnPath($imageId, $page));
     }
 
     public function comment(): void
@@ -108,7 +128,7 @@ final class GalleryController extends BaseController
                 $this->jsonResponse(['ok' => false, 'error' => 'Le commentaire doit contenir entre 1 et 500 caractères.'], 422);
             }
             Session::flash('error', 'Le commentaire doit contenir entre 1 et 500 caractères.');
-            $this->redirect('/gallery?page=' . $page . '#image-' . $imageId);
+            $this->redirect($this->returnPath($imageId, $page));
         }
 
         $commenterId = (int) $_SESSION['user_id'];
@@ -144,7 +164,24 @@ final class GalleryController extends BaseController
         }
 
         Session::flash('success', 'Commentaire ajouté.');
-        $this->redirect('/gallery?page=' . $page . '#image-' . $imageId);
+        $this->redirect($this->returnPath($imageId, $page));
+    }
+
+    /**
+     * Chemin de retour après like/commentaire : le formulaire peut fournir
+     * return_path (page de détail), sinon la galerie ancrée. Validation
+     * stricte anti open-redirect : chemin relatif, jamais de schéma/protocole.
+     */
+    private function returnPath(int $imageId, int $page): string
+    {
+        $default = '/gallery?page=' . $page . '#image-' . $imageId;
+        $return = (string) Request::post('return_path', '');
+
+        if ($return !== '' && str_starts_with($return, '/') && !str_starts_with($return, '//') && !str_contains($return, '\\')) {
+            return $return;
+        }
+
+        return $default;
     }
 
     /** Rendu du fragment grille + pagination (page complète ou AJAX). */

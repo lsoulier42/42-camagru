@@ -1,9 +1,11 @@
 <?php
 
 use App\Core\Csrf;
+use App\Core\Env;
 use App\Core\View;
 
 $currentUserId = $_SESSION['user_id'] ?? null;
+$appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
 ?>
 <p class="muted" id="gallery-count">
     <?= (int) $total ?> image<?= $total > 1 ? 's' : '' ?> — page <?= (int) $page ?> / <?= (int) $totalPages ?>
@@ -22,8 +24,24 @@ $currentUserId = $_SESSION['user_id'] ?? null;
                     </time>
                 </header>
 
-                <img class="gallery-img" src="/uploads/<?= rawurlencode((string) $image['filename']) ?>"
-                     alt="Image de <?= View::e($image['author']) ?>" loading="lazy">
+                <?php
+                // Citation pour le partage : dernier commentaire (ou message par défaut).
+                $quote = 'Découvrez cette image sur Camagru !';
+                if ($image['comments'] !== []) {
+                    $last = end($image['comments']);
+                    $quote = trim((string) $last['content']);
+                    if (mb_strlen($quote) > 120) {
+                        $quote = mb_substr($quote, 0, 117) . '…';
+                    }
+                }
+                $imageUrl = $appUrl . '/image/' . (int) $image['id'];
+                $shareTwitter = 'https://twitter.com/intent/tweet?url=' . rawurlencode($imageUrl) . '&text=' . rawurlencode($quote);
+                $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($imageUrl);
+                ?>
+                <a class="gallery-img-link" href="/image/<?= (int) $image['id'] ?>">
+                    <img class="gallery-img" src="/uploads/<?= rawurlencode((string) $image['filename']) ?>"
+                         alt="Image de <?= View::e($image['author']) ?>" loading="lazy">
+                </a>
 
                 <div class="gallery-actions">
                     <?php if ($currentUserId !== null): ?>
@@ -41,6 +59,12 @@ $currentUserId = $_SESSION['user_id'] ?? null;
                         <a class="like-btn" href="/login" title="Connectez-vous pour aimer">♥ <?= (int) $image['likes_count'] ?></a>
                     <?php endif; ?>
                     <span class="gallery-comments-count">💬 <?= (int) $image['comments_count'] ?></span>
+                    <div class="gallery-share">
+                        <a class="share-link share-link--x" target="_blank" rel="noopener"
+                           href="<?= View::e($shareTwitter) ?>" title="Partager sur X (Twitter)">𝕏</a>
+                        <a class="share-link share-link--fb" target="_blank" rel="noopener"
+                           href="<?= View::e($shareFacebook) ?>" title="Partager sur Facebook">f</a>
+                    </div>
                 </div>
 
                 <div class="gallery-comments">
