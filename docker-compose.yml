@@ -1,0 +1,44 @@
+services:
+  web:
+    build: .
+    container_name: camagru-web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    # Le dossier d'uploads (monté depuis l'hôte) doit rester inscriptible
+    # par www-data, quel que soit le propriétaire du volume sur la machine.
+    command: sh -c "mkdir -p /var/www/html/public/uploads && chmod 777 /var/www/html/public/uploads && apache2-foreground"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: camagru-db
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root}
+      MYSQL_DATABASE: ${DB_NAME:-camagru}
+      MYSQL_USER: ${DB_USER:-camagru}
+      MYSQL_PASSWORD: ${DB_PASS:-camagru}
+    volumes:
+      - ./docker-data/mysql:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: camagru-mailhog
+    ports:
+      - "8025:8025"
+    restart: unless-stopped

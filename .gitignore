@@ -10,6 +10,9 @@ composer.lock
 # Docker
 /docker-data/
 
+# Images uploadées par les utilisateurs (étape éditeur)
+/public/uploads/
+
 # Logs & temp
 *.log
 /tmp/
@@ -18,3 +21,6 @@ composer.lock
 .DS_Store
 .idea/
 .vscode/
+
+# Outils locaux (kit agents, etc.)
+.freebuff/
