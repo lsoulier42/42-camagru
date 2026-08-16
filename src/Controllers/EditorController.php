@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Compositor;
+use App\Core\GifEncoder;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\View;
@@ -73,6 +74,84 @@ final class EditorController extends BaseController
         }
 
         $this->saveImage($base);
+    }
+
+    /**
+     * Export GIF animé : la même capture webcam, mais l'overlay est animé
+     * (pulsation d'échelle + flottement vertical) par un encodage GIF89a
+     * généré côté serveur en PHP pur.
+     */
+    public function gif(): void
+    {
+        $this->verifyCsrf();
+        if (!$this->requireLogin('Connectez-vous pour accéder à l\'éditeur.')) {
+            return;
+        }
+
+        $overlay = Request::post('overlay');
+        if (!$this->validOverlay($overlay)) {
+            Session::flash('error', 'Image superposable invalide.');
+            $this->redirect('/editor');
+        }
+
+        $dataUrl = Request::post('image');
+        if (preg_match('#^data:image/(png|jpeg|webp);base64,(.+)$#s', $dataUrl, $m) !== 1) {
+            Session::flash('error', 'Capture invalide.');
+            $this->redirect('/editor');
+        }
+
+        $raw = base64_decode($m[2], true);
+        $base = $raw !== false ? @imagecreatefromstring($raw) : false;
+        if ($base === false) {
+            Session::flash('error', 'Capture invalide.');
+            $this->redirect('/editor');
+        }
+        if (imagesx($base) > self::MAX_DIMENSION || imagesy($base) > self::MAX_DIMENSION) {
+            imagedestroy($base);
+            Session::flash('error', 'Capture trop grande.');
+            $this->redirect('/editor');
+        }
+
+        $base = self::fitToPhoto($base); // 480x360, comme la webcam
+
+        // 10 frames : l'overlay pulse (0.85 → 1.05) et flotte (±6 px).
+        $frames = [];
+        $frameCount = 10;
+        for ($i = 0; $i < $frameCount; $i++) {
+            $frame = self::cloneImage($base);
+            $scale = 0.85 + 0.20 * sin(M_PI * $i / ($frameCount - 1));
+            $offsetY = (int) round(6 * sin(2 * M_PI * $i / $frameCount));
+
+            try {
+                Compositor::applyOverlayFrame($frame, self::overlayPath($overlay), $scale, $offsetY);
+            } catch (\RuntimeException $e) {
+                imagedestroy($frame);
+                foreach ($frames as $f) {
+                    imagedestroy($f);
+                }
+                error_log('[Camagru] ' . $e->getMessage());
+                Session::flash('error', 'Impossible de composer l\'image.');
+                $this->redirect('/editor');
+            }
+            $frames[] = $frame;
+        }
+        imagedestroy($base);
+
+        try {
+            $gif = GifEncoder::encode($frames, 120);
+        } catch (\RuntimeException $e) {
+            foreach ($frames as $f) {
+                imagedestroy($f);
+            }
+            error_log('[Camagru] ' . $e->getMessage());
+            Session::flash('error', 'Impossible de générer le GIF animé.');
+            $this->redirect('/editor');
+        }
+        foreach ($frames as $f) {
+            imagedestroy($f);
+        }
+
+        $this->saveGif($gif);
     }
 
     /** Upload d'image : validation stricte (MIME + extension + contenu) puis ré-encodage. */
@@ -203,6 +282,17 @@ final class EditorController extends BaseController
             && is_file(self::overlayPath($name));
     }
 
+    /** Clone une image vraies couleurs (imageclone n'existe plus en PHP 8). */
+    private static function cloneImage(GdImage $image): GdImage
+    {
+        $clone = imagecreatetruecolor(imagesx($image), imagesy($image));
+        imagealphablending($clone, false);
+        imagesavealpha($clone, true);
+        imagecopy($clone, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
+
+        return $clone;
+    }
+
     /** Redimensionne en 480x360 (couverture) en préservant l'alpha. */
     private static function fitToPhoto(GdImage $image): GdImage
     {
@@ -242,6 +332,23 @@ final class EditorController extends BaseController
         Image::create((int) $_SESSION['user_id'], $filename);
 
         Session::flash('success', 'Image publiée dans la galerie !');
+        $this->redirect('/editor');
+    }
+
+    /** Enregistre le GIF animé (nom aléatoire), insère en base, redirige. */
+    private function saveGif(string $contents): never
+    {
+        $uploadsDir = APP_ROOT . '/public/uploads';
+        $filename = 'img_' . bin2hex(random_bytes(8)) . '.gif';
+
+        if (file_put_contents($uploadsDir . '/' . $filename, $contents) === false) {
+            Session::flash('error', 'Impossible d\'enregistrer le GIF animé.');
+            $this->redirect('/editor');
+        }
+
+        Image::create((int) $_SESSION['user_id'], $filename);
+
+        Session::flash('success', 'GIF animé publié dans la galerie !');
         $this->redirect('/editor');
     }
 }

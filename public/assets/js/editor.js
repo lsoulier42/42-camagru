@@ -15,6 +15,7 @@
     const uploadOverlayField = document.getElementById('upload-overlay-field');
     const imageData = document.getElementById('image-data');
     const captureBtn = document.getElementById('capture-btn');
+    const gifBtn = document.getElementById('gif-btn');
     const uploadBtn = document.getElementById('upload-btn');
     const photoInput = document.getElementById('photo-input');
     const uploadPreview = document.getElementById('upload-preview');
@@ -51,6 +52,7 @@
             overlayPreview.src = '';
             overlayPreview.hidden = true;
             captureBtn.disabled = true;
+            gifBtn.disabled = true;
             uploadBtn.disabled = true;
             return;
         }
@@ -62,6 +64,7 @@
         overlayPreview.src = '/assets/overlays/' + encodeURIComponent(selectedOverlay);
         overlayPreview.hidden = false;
         captureBtn.disabled = false;
+        gifBtn.disabled = false;
         uploadBtn.disabled = false;
     };
 
@@ -69,9 +72,11 @@
         button.addEventListener('click', () => selectOverlay(button));
     });
 
-    // --- Capture : image de la webcam mise en miroir, recadrée 480x360 ---
+    // --- Capture : image de la webcam mise en miroir, recadrée 480x360.
+    // Le bouton « GIF » (formaction=/editor/gif) passe par le même formulaire,
+    // donc le canvas est rempli de la même façon avant soumission.
     captureForm.addEventListener('submit', (event) => {
-        if (captureBtn.disabled) {
+        if (captureBtn.disabled || gifBtn.disabled) {
             event.preventDefault();
             return;
         }

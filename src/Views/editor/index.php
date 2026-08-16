@@ -45,6 +45,9 @@ View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
                 <button type="submit" id="capture-btn" class="btn btn--primary" disabled>
                     2. Capturer avec la webcam
                 </button>
+                <button type="submit" id="gif-btn" class="btn btn--gif" formaction="/editor/gif" disabled>
+                    🎬 Exporter en GIF animé
+                </button>
             </form>
 
             <form id="upload-form" method="post" action="/editor/upload" enctype="multipart/form-data">

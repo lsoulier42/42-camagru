@@ -199,6 +199,17 @@ img {
     border-color: var(--color-primary-dark);
 }
 
+.btn--gif {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+}
+
+.btn--gif:hover {
+    background: #6d28d9;
+    border-color: #6d28d9;
+}
+
 .btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
@@ -418,6 +429,11 @@ img {
     white-space: nowrap;
 }
 
+.gallery-img-link {
+    display: block;
+    line-height: 0;
+}
+
 .gallery-img {
     display: block;
     width: 100%;
@@ -433,6 +449,59 @@ img {
     padding: 0.6rem 1rem;
     border-top: 1px solid var(--color-border);
     border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Partage social (X / Facebook) --- */
+.gallery-share {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+}
+
+.share-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
+    text-decoration: none;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.share-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-primary);
+}
+
+.share-link--x {
+    color: #0f1419;
+}
+
+.share-link--fb {
+    background: #1877f2;
+    border-color: #1877f2;
+    color: #fff;
+}
+
+/* --- Page de détail /image/{id} --- */
+.gallery-card--detail {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.gallery-img--detail {
+    aspect-ratio: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    background: #111;
 }
 
 .inline-form {

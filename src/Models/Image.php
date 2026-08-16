@@ -60,6 +60,35 @@ final class Image
         return $row === false ? null : $row;
     }
 
+    /**
+     * Détail d'une image (page /image/{id}) : mêmes compteurs et drapeau
+     * « aimée par le visiteur » que la liste.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function findForDetail(int $id, int $viewerId): ?array
+    {
+        $sql = 'SELECT i.id, i.filename, i.created_at,
+                       u.id AS author_id, u.username AS author,
+                       (SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id) AS likes_count,
+                       (SELECT COUNT(*) FROM comments c WHERE c.image_id = i.id) AS comments_count,
+                       EXISTS(
+                           SELECT 1 FROM likes l2
+                           WHERE l2.image_id = i.id AND l2.user_id = :viewer_id
+                       ) AS liked
+                FROM images i
+                JOIN users u ON u.id = i.user_id
+                WHERE i.id = :id LIMIT 1';
+
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->bindValue(':viewer_id', $viewerId, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return $row === false ? null : $row;
+    }
+
     public static function create(int $userId, string $filename): int
     {
         $stmt = Database::pdo()->prepare(

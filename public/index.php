@@ -14,6 +14,7 @@ $router->get('/index.php', 'Home@index'); // accès direct au front controller
 $router->get('/gallery', 'Gallery@index');
 $router->post('/gallery/like', 'Gallery@like');
 $router->post('/gallery/comment', 'Gallery@comment');
+$router->get('/image/{id}', 'Gallery@show'); // page de détail (partage social)
 
 // Aucun 404 pour la favicon legacy (les navigateurs modernes utilisent /favicon.svg)
 if (($_SERVER['REQUEST_URI'] ?? '') === '/favicon.ico') {
@@ -38,6 +39,7 @@ $router->post('/profile', 'Auth@updateProfile');
 // Éditeur (connecté)
 $router->get('/editor', 'Editor@index');
 $router->post('/editor/capture', 'Editor@capture');
+$router->post('/editor/gif', 'Editor@gif');
 $router->post('/editor/upload', 'Editor@upload');
 $router->post('/editor/delete', 'Editor@delete');
 
