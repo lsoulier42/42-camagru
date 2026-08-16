@@ -1,0 +1,6 @@
+.git
+.freebuff
+docker-data
+.env
+*.log
+tmp

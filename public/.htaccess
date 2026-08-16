@@ -1,0 +1,8 @@
+# Front controller : toutes les requêtes non-fichier passent par index.php
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Ne jamais servir les fichiers cachés (type .env, .git…)
+RedirectMatch 404 /\.[^/]
