@@ -13,6 +13,16 @@ use DateTimeImmutable;
  */
 final class Comment
 {
+    public function __construct(
+        public readonly int $id,
+        public readonly int $imageId,
+        public readonly int $userId,
+        public readonly string $content,
+        public readonly DateTimeImmutable $createdAt,
+        public readonly ?string $author,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute de la table `comments`
      *                                  (clés : id, image_id, user_id, content,
@@ -28,45 +38,5 @@ final class Comment
             createdAt: new DateTimeImmutable((string) $row['created_at']),
             author: isset($row['author']) ? (string) $row['author'] : null,
         );
-    }
-
-    private function __construct(
-        private readonly int $id,
-        private readonly int $imageId,
-        private readonly int $userId,
-        private readonly string $content,
-        private readonly DateTimeImmutable $createdAt,
-        private readonly ?string $author,
-    ) {
-    }
-
-    public function id(): int
-    {
-        return $this->id;
-    }
-
-    public function imageId(): int
-    {
-        return $this->imageId;
-    }
-
-    public function userId(): int
-    {
-        return $this->userId;
-    }
-
-    public function content(): string
-    {
-        return $this->content;
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function author(): ?string
-    {
-        return $this->author;
     }
 }

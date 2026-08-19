@@ -13,6 +13,16 @@ use DateTimeImmutable;
  */
 final class Token
 {
+    public function __construct(
+        public readonly int $id,
+        public readonly int $userId,
+        public readonly string $type,
+        public readonly string $hash,
+        public readonly DateTimeImmutable $expiresAt,
+        public readonly DateTimeImmutable $createdAt,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute de la table `tokens`.
      */
@@ -26,45 +36,5 @@ final class Token
             expiresAt: new DateTimeImmutable((string) $row['expires_at']),
             createdAt: new DateTimeImmutable((string) $row['created_at']),
         );
-    }
-
-    private function __construct(
-        private readonly int $id,
-        private readonly int $userId,
-        private readonly string $type,
-        private readonly string $hash,
-        private readonly DateTimeImmutable $expiresAt,
-        private readonly DateTimeImmutable $createdAt,
-    ) {
-    }
-
-    public function id(): int
-    {
-        return $this->id;
-    }
-
-    public function userId(): int
-    {
-        return $this->userId;
-    }
-
-    public function type(): string
-    {
-        return $this->type;
-    }
-
-    public function hash(): string
-    {
-        return $this->hash;
-    }
-
-    public function expiresAt(): DateTimeImmutable
-    {
-        return $this->expiresAt;
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 }

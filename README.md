@@ -6,8 +6,6 @@
 
 Projet de fin d'année de l'école **42** — développé en **PHP vanilla** (zéro dépendance), **JavaScript natif** et **Docker**.
 
-[![CI](https://github.com/lsoulier42/42-camagru/actions/workflows/ci.yml/badge.svg)](https://github.com/lsoulier42/42-camagru/actions/workflows/ci.yml)
-
 </div>
 
 ---
@@ -127,7 +125,6 @@ Le projet a aussi été vérifié de bout en bout (curl + navigateur réel) :
 - Éditeur : capture webcam, superposition serveur vérifiée **au pixel près**, uploads refusés (faux PNG, `.php`, `.exe`), suppression.
 - Sécurité : SQLi, XSS, CSRF, anti-traversal, open-redirect — tous refusés.
 - Consoles : zéro erreur PHP / navigateur / réseau ; responsive validé en mobile et desktop.
-- **Intégration continue** (GitHub Actions) : lint PHP + JavaScript, **PHPStan**, **PHPUnit** (service MySQL dédié), vérification qu'aucun fichier sensible n'est committé, build Docker et smoke-test des pages publiques à chaque push.
 
 ---
 
@@ -138,8 +135,7 @@ Le projet a aussi été vérifié de bout en bout (curl + navigateur réel) :
    vendor/bin/phpstan analyse
    docker compose exec web vendor/bin/phpunit
    ```
-2. La CI (lint, analyse statique, tests, build Docker) valide chaque pull request automatiquement.
-3. Ne committez **jamais** `.env`, `docker-data/` ou `public/uploads/` — vérifiés par la CI.
+2. Ne committez **jamais** `.env`, `docker-data/` ou `public/uploads/`.
 
 ---
 

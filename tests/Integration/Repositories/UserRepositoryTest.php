@@ -25,12 +25,12 @@ final class UserRepositoryTest extends TestCase
 
         $user = $this->users->findById($id);
         self::assertNotNull($user);
-        self::assertSame('alice', $user->username());
-        self::assertSame('alice@example.com', $user->email());
-        self::assertSame('hash1', $user->passwordHash());
-        self::assertFalse($user->isActive());
-        self::assertTrue($user->notifyComments()); // préférence activée par défaut
-        self::assertNotNull($user->createdAt());
+        self::assertSame('alice', $user->username);
+        self::assertSame('alice@example.com', $user->email);
+        self::assertSame('hash1', $user->passwordHash);
+        self::assertFalse($user->isActive);
+        self::assertTrue($user->notifyComments); // préférence activée par défaut
+        self::assertNotNull($user->createdAt);
     }
 
     public function testFindByIdReturnsNullWhenMissing(): void
@@ -44,11 +44,11 @@ final class UserRepositoryTest extends TestCase
 
         $byUsername = $this->users->findByLogin('bob');
         self::assertNotNull($byUsername);
-        self::assertSame('bob@example.com', $byUsername->email());
+        self::assertSame('bob@example.com', $byUsername->email);
 
         $byEmail = $this->users->findByLogin('bob@example.com');
         self::assertNotNull($byEmail);
-        self::assertSame('bob', $byEmail->username());
+        self::assertSame('bob', $byEmail->username);
     }
 
     public function testFindByLoginReturnsNullWhenUnknown(): void
@@ -61,7 +61,7 @@ final class UserRepositoryTest extends TestCase
         $this->users->create('carol', 'carol@example.com', 'hash1');
         $user = $this->users->findByEmail('carol@example.com');
         self::assertNotNull($user);
-        self::assertSame('carol', $user->username());
+        self::assertSame('carol', $user->username);
 
         self::assertNull($this->users->findByEmail('autre@example.com'));
     }
@@ -87,11 +87,11 @@ final class UserRepositoryTest extends TestCase
     public function testActivate(): void
     {
         $id = $this->users->create('frank', 'frank@example.com', 'hash1');
-        self::assertFalse($this->users->findById($id)->isActive());
+        self::assertFalse($this->users->findById($id)->isActive);
 
         $this->users->activate($id);
 
-        self::assertTrue($this->users->findById($id)->isActive());
+        self::assertTrue($this->users->findById($id)->isActive);
     }
 
     public function testUpdateProfile(): void
@@ -101,9 +101,9 @@ final class UserRepositoryTest extends TestCase
         $this->users->updateProfile($id, 'grace2', 'grace2@example.com', false);
 
         $user = $this->users->findById($id);
-        self::assertSame('grace2', $user->username());
-        self::assertSame('grace2@example.com', $user->email());
-        self::assertFalse($user->notifyComments());
+        self::assertSame('grace2', $user->username);
+        self::assertSame('grace2@example.com', $user->email);
+        self::assertFalse($user->notifyComments);
     }
 
     public function testUpdatePassword(): void
@@ -113,7 +113,7 @@ final class UserRepositoryTest extends TestCase
         $this->users->updatePassword($id, password_hash('Newpass456', PASSWORD_DEFAULT));
 
         $user = $this->users->findById($id);
-        self::assertTrue(password_verify('Newpass456', $user->passwordHash()));
-        self::assertFalse(password_verify('Oldpass123', $user->passwordHash()));
+        self::assertTrue(password_verify('Newpass456', $user->passwordHash));
+        self::assertFalse(password_verify('Oldpass123', $user->passwordHash));
     }
 }

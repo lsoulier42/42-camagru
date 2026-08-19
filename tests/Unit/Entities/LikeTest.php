@@ -18,9 +18,9 @@ final class LikeTest extends TestCase
             'created_at' => '2026-08-19 11:05:00',
         ]);
 
-        self::assertSame(9, $like->id());
-        self::assertSame(12, $like->imageId());
-        self::assertSame(7, $like->userId());
-        self::assertSame('2026-08-19 11:05:00', $like->createdAt()->format('Y-m-d H:i:s'));
+        self::assertSame(9, $like->id);
+        self::assertSame(12, $like->imageId);
+        self::assertSame(7, $like->userId);
+        self::assertSame('2026-08-19 11:05:00', $like->createdAt->format('Y-m-d H:i:s'));
     }
 }

@@ -8,10 +8,21 @@ use DateTimeImmutable;
 
 /**
  * Entité utilisateur — données pures, sans SQL.
- * Construite par UserRepository::fromRow() ; immuable.
+ * Immuable : propriétés publiques readonly promues au constructeur.
  */
 final class User
 {
+    public function __construct(
+        public readonly int $id,
+        public readonly string $username,
+        public readonly string $email,
+        public readonly string $passwordHash,
+        public readonly bool $isActive,
+        public readonly bool $notifyComments,
+        public readonly DateTimeImmutable $createdAt,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute de la table `users`.
      */
@@ -26,51 +37,5 @@ final class User
             notifyComments: (int) $row['notify_comments'] === 1,
             createdAt: new DateTimeImmutable((string) $row['created_at']),
         );
-    }
-
-    private function __construct(
-        private readonly int $id,
-        private readonly string $username,
-        private readonly string $email,
-        private readonly string $passwordHash,
-        private readonly bool $isActive,
-        private readonly bool $notifyComments,
-        private readonly DateTimeImmutable $createdAt,
-    ) {
-    }
-
-    public function id(): int
-    {
-        return $this->id;
-    }
-
-    public function username(): string
-    {
-        return $this->username;
-    }
-
-    public function email(): string
-    {
-        return $this->email;
-    }
-
-    public function passwordHash(): string
-    {
-        return $this->passwordHash;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function notifyComments(): bool
-    {
-        return $this->notifyComments;
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 }

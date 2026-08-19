@@ -20,12 +20,12 @@ final class CommentTest extends TestCase
             'author' => 'alice',
         ]);
 
-        self::assertSame(3, $comment->id());
-        self::assertSame(12, $comment->imageId());
-        self::assertSame(7, $comment->userId());
-        self::assertSame('Superbe !', $comment->content());
-        self::assertSame('2026-08-19 11:00:00', $comment->createdAt()->format('Y-m-d H:i:s'));
-        self::assertSame('alice', $comment->author());
+        self::assertSame(3, $comment->id);
+        self::assertSame(12, $comment->imageId);
+        self::assertSame(7, $comment->userId);
+        self::assertSame('Superbe !', $comment->content);
+        self::assertSame('2026-08-19 11:00:00', $comment->createdAt->format('Y-m-d H:i:s'));
+        self::assertSame('alice', $comment->author);
     }
 
     public function testFromRowWithoutAuthorJoin(): void
@@ -38,6 +38,6 @@ final class CommentTest extends TestCase
             'created_at' => '2026-08-19 11:00:00',
         ]);
 
-        self::assertNull($comment->author());
+        self::assertNull($comment->author);
     }
 }

@@ -18,9 +18,9 @@ final class ImageTest extends TestCase
             'created_at' => '2026-08-19 10:30:00',
         ]);
 
-        self::assertSame(12, $image->id());
-        self::assertSame(4, $image->userId());
-        self::assertSame('img_abc.png', $image->filename());
-        self::assertSame('2026-08-19 10:30:00', $image->createdAt()->format('Y-m-d H:i:s'));
+        self::assertSame(12, $image->id);
+        self::assertSame(4, $image->userId);
+        self::assertSame('img_abc.png', $image->filename);
+        self::assertSame('2026-08-19 10:30:00', $image->createdAt->format('Y-m-d H:i:s'));
     }
 }

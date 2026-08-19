@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Repositories\TokenRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use Tests\FakeMailer;
 use Tests\TestCase;
 
 final class AuthServiceTest extends TestCase
@@ -15,6 +16,7 @@ final class AuthServiceTest extends TestCase
     private UserRepository $users;
     private TokenRepository $tokens;
     private AuthService $auth;
+    private FakeMailer $mailer;
 
     protected function setUp(): void
     {
@@ -22,7 +24,8 @@ final class AuthServiceTest extends TestCase
         $pdo = Database::pdo();
         $this->users = new UserRepository($pdo);
         $this->tokens = new TokenRepository($pdo);
-        $this->auth = new AuthService($this->users, $this->tokens);
+        $this->mailer = new FakeMailer();
+        $this->auth = new AuthService($this->users, $this->tokens, $this->mailer);
     }
 
     private function countTokens(string $type, ?int $userId = null): int
@@ -45,9 +48,9 @@ final class AuthServiceTest extends TestCase
 
         $user = $this->users->findByEmail('alice@example.com');
         self::assertNotNull($user);
-        self::assertFalse($user->isActive());
-        self::assertTrue(password_verify('Passw0rd!', $user->passwordHash()));
-        self::assertSame(1, $this->countTokens('confirm', $user->id()));
+        self::assertFalse($user->isActive);
+        self::assertTrue(password_verify('Passw0rd!', $user->passwordHash));
+        self::assertSame(1, $this->countTokens('confirm', $user->id));
     }
 
     public function testConfirmActivatesAccountAndConsumesToken(): void
@@ -56,7 +59,7 @@ final class AuthServiceTest extends TestCase
         $token = $this->tokens->create($id, 'confirm', 3600);
 
         self::assertTrue($this->auth->confirm($token));
-        self::assertTrue($this->users->findById($id)->isActive());
+        self::assertTrue($this->users->findById($id)->isActive);
 
         // Usage unique : le jeton a été supprimé, un second appel échoue.
         self::assertFalse($this->auth->confirm($token));
@@ -100,8 +103,8 @@ final class AuthServiceTest extends TestCase
         self::assertTrue($this->auth->reset($token, 'Newpass456'));
 
         $user = $this->users->findById($id);
-        self::assertTrue(password_verify('Newpass456', $user->passwordHash()));
-        self::assertFalse(password_verify('Oldpass123', $user->passwordHash()));
+        self::assertTrue(password_verify('Newpass456', $user->passwordHash));
+        self::assertFalse(password_verify('Oldpass123', $user->passwordHash));
 
         // Jeton consommé : un second reset échoue.
         self::assertFalse($this->auth->reset($token, 'Another789'));
@@ -163,13 +166,13 @@ final class AuthServiceTest extends TestCase
         $this->auth->updateProfile($user, 'alice2', 'alice2@example.com', false, 'Newpass456');
 
         $updated = $this->users->findById($id);
-        self::assertSame('alice2', $updated->username());
-        self::assertSame('alice2@example.com', $updated->email());
-        self::assertFalse($updated->notifyComments());
-        self::assertTrue(password_verify('Newpass456', $updated->passwordHash()));
+        self::assertSame('alice2', $updated->username);
+        self::assertSame('alice2@example.com', $updated->email);
+        self::assertFalse($updated->notifyComments);
+        self::assertTrue(password_verify('Newpass456', $updated->passwordHash));
 
         // Sans nouveau mot de passe : le hash est conservé.
         $this->auth->updateProfile($updated, 'alice2', 'alice2@example.com', false, null);
-        self::assertTrue(password_verify('Newpass456', $this->users->findById($id)->passwordHash()));
+        self::assertTrue(password_verify('Newpass456', $this->users->findById($id)->passwordHash));
     }
 }

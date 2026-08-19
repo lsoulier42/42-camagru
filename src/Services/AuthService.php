@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Env;
-use App\Core\Mailer;
+use App\Core\MailerInterface;
 use App\Entities\User;
 use App\Repositories\TokenRepository;
 use App\Repositories\UserRepository;
@@ -17,9 +17,13 @@ use App\Repositories\UserRepository;
  */
 final class AuthService
 {
+    private const int CONFIRM_TTL_SECONDS = 86400; // 24 h
+    private const int RESET_TTL_SECONDS = 3600; // 1 h
+
     public function __construct(
         private readonly UserRepository $users,
         private readonly TokenRepository $tokens,
+        private readonly MailerInterface $mailer,
     ) {
     }
 
@@ -70,13 +74,13 @@ final class AuthService
     {
         $userId = $this->users->create($username, $email, password_hash($password, PASSWORD_DEFAULT));
 
-        $token = $this->tokens->create($userId, 'confirm', 86400); // 24 h
-        $link = Env::get('APP_URL', 'http://localhost:8080') . '/confirm?token=' . $token;
+        $token = $this->tokens->create($userId, 'confirm', self::CONFIRM_TTL_SECONDS);
+        $link = Env::get('APP_URL', Env::DEFAULT_APP_URL) . '/confirm?token=' . $token;
         $body = '<p>Bonjour <strong>' . htmlspecialchars($username, ENT_QUOTES) . '</strong>,</p>'
             . '<p>Bienvenue sur Camagru ! Pour activer votre compte, cliquez sur le lien suivant :</p>'
             . '<p><a href="' . $link . '">' . $link . '</a></p>'
             . '<p>Ce lien est valable 24 heures et ne fonctionne qu\'une seule fois.</p>';
-        Mailer::send($email, 'Confirmez votre compte Camagru', $body);
+        $this->mailer->send($email, 'Confirmez votre compte Camagru', $body);
     }
 
     /** Active le compte si le jeton est valide (usage unique) ; renvoie true si activé. */
@@ -100,17 +104,17 @@ final class AuthService
     public function sendResetLink(string $email): void
     {
         $user = $this->users->findByEmail($email);
-        if ($user === null || !$user->isActive()) {
+        if ($user === null || !$user->isActive) {
             return;
         }
 
-        $token = $this->tokens->create($user->id(), 'reset', 3600); // 1 h
-        $link = Env::get('APP_URL', 'http://localhost:8080') . '/reset?token=' . $token;
+        $token = $this->tokens->create($user->id, 'reset', self::RESET_TTL_SECONDS);
+        $link = Env::get('APP_URL', Env::DEFAULT_APP_URL) . '/reset?token=' . $token;
         $body = '<p>Bonjour,</p>'
             . '<p>Vous avez demandé la réinitialisation de votre mot de passe Camagru :</p>'
             . '<p><a href="' . $link . '">' . $link . '</a></p>'
             . '<p>Ce lien est valable 1 heure et ne fonctionne qu\'une seule fois.</p>';
-        Mailer::send($email, 'Réinitialisation de votre mot de passe', $body);
+        $this->mailer->send($email, 'Réinitialisation de votre mot de passe', $body);
     }
 
     /** Le jeton de reset est-il présent, du bon type et non expiré ? */
@@ -147,11 +151,11 @@ final class AuthService
         string $newPassword,
         string $newPasswordConfirm,
     ): array {
-        $errors = $this->validateIdentity($username, $email, $user->id());
+        $errors = $this->validateIdentity($username, $email, $user->id);
 
         // Changement de mot de passe : mot de passe actuel obligatoire pour confirmer.
         if ($newPassword !== '' || $newPasswordConfirm !== '') {
-            if (!password_verify($currentPassword, $user->passwordHash())) {
+            if (!password_verify($currentPassword, $user->passwordHash)) {
                 $errors[] = 'Le mot de passe actuel est incorrect.';
             } else {
                 $errors = array_merge($errors, self::validatePassword($newPassword, $newPasswordConfirm));
@@ -189,10 +193,10 @@ final class AuthService
     /** Applique les modifications du profil ; change le mot de passe si demandé. */
     public function updateProfile(User $user, string $username, string $email, bool $notifyComments, ?string $newPassword): void
     {
-        $this->users->updateProfile($user->id(), $username, $email, $notifyComments);
+        $this->users->updateProfile($user->id, $username, $email, $notifyComments);
 
         if ($newPassword !== null && $newPassword !== '') {
-            $this->users->updatePassword($user->id(), password_hash($newPassword, PASSWORD_DEFAULT));
+            $this->users->updatePassword($user->id, password_hash($newPassword, PASSWORD_DEFAULT));
         }
     }
 }

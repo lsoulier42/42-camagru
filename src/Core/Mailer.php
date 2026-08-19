@@ -8,9 +8,9 @@ namespace App\Core;
  * Envoi d'emails avec la fonction mail() de la stdlib.
  * En développement, le conteneur relaye tout vers MailHog (port 1025).
  */
-final class Mailer
+class Mailer implements MailerInterface
 {
-    public static function send(string $to, string $subject, string $htmlBody): bool
+    public function send(string $to, string $subject, string $htmlBody): bool
     {
         $from = Env::get('MAIL_FROM', 'noreply@camagru.local');
 

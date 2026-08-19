@@ -21,13 +21,13 @@ final class UserTest extends TestCase
             'created_at' => '2026-08-19 10:30:00',
         ]);
 
-        self::assertSame(7, $user->id());
-        self::assertSame('alice', $user->username());
-        self::assertSame('alice@example.com', $user->email());
-        self::assertSame('hash', $user->passwordHash());
-        self::assertTrue($user->isActive());
-        self::assertFalse($user->notifyComments());
-        self::assertSame('2026-08-19 10:30:00', $user->createdAt()->format('Y-m-d H:i:s'));
+        self::assertSame(7, $user->id);
+        self::assertSame('alice', $user->username);
+        self::assertSame('alice@example.com', $user->email);
+        self::assertSame('hash', $user->passwordHash);
+        self::assertTrue($user->isActive);
+        self::assertFalse($user->notifyComments);
+        self::assertSame('2026-08-19 10:30:00', $user->createdAt->format('Y-m-d H:i:s'));
     }
 
     public function testFromRowMapsInactiveUser(): void
@@ -42,7 +42,7 @@ final class UserTest extends TestCase
             'created_at' => '2026-08-19 10:30:00',
         ]);
 
-        self::assertFalse($user->isActive());
-        self::assertTrue($user->notifyComments());
+        self::assertFalse($user->isActive);
+        self::assertTrue($user->notifyComments);
     }
 }

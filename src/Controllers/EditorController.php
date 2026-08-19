@@ -236,12 +236,12 @@ final class EditorController extends BaseController
             $this->redirect('/editor');
         }
 
-        if ($image->userId() !== $userId) {
+        if ($image->userId !== $userId) {
             Session::flash('error', 'Vous ne pouvez supprimer que vos propres images.');
             $this->redirect('/editor');
         }
 
-        $file = APP_ROOT . '/public/uploads/' . $image->filename();
+        $file = APP_ROOT . '/public/uploads/' . $image->filename;
         if ($this->images->deleteOwned($imageId, $userId) && is_file($file)) {
             @unlink($file);
         }
@@ -264,7 +264,8 @@ final class EditorController extends BaseController
         return self::overlayDir() . '/' . $name;
     }
 
-    /** Liste des PNG superposables du dossier (fichiers sûrs uniquement).
+    /**
+     * Liste des PNG superposables du dossier (fichiers sûrs uniquement).
      *
      * @return list<string>
      */
