@@ -17,6 +17,9 @@ use App\Repositories\UserRepository;
  */
 final class AuthService
 {
+    private const int CONFIRM_TTL_SECONDS = 86400; // 24 h
+    private const int RESET_TTL_SECONDS = 3600; // 1 h
+
     public function __construct(
         private readonly UserRepository $users,
         private readonly TokenRepository $tokens,
@@ -70,7 +73,7 @@ final class AuthService
     {
         $userId = $this->users->create($username, $email, password_hash($password, PASSWORD_DEFAULT));
 
-        $token = $this->tokens->create($userId, 'confirm', 86400); // 24 h
+        $token = $this->tokens->create($userId, 'confirm', self::CONFIRM_TTL_SECONDS);
         $link = Env::get('APP_URL', 'http://localhost:8080') . '/confirm?token=' . $token;
         $body = '<p>Bonjour <strong>' . htmlspecialchars($username, ENT_QUOTES) . '</strong>,</p>'
             . '<p>Bienvenue sur Camagru ! Pour activer votre compte, cliquez sur le lien suivant :</p>'
@@ -104,7 +107,7 @@ final class AuthService
             return;
         }
 
-        $token = $this->tokens->create($user->id, 'reset', 3600); // 1 h
+        $token = $this->tokens->create($user->id, 'reset', self::RESET_TTL_SECONDS);
         $link = Env::get('APP_URL', 'http://localhost:8080') . '/reset?token=' . $token;
         $body = '<p>Bonjour,</p>'
             . '<p>Vous avez demandé la réinitialisation de votre mot de passe Camagru :</p>'
