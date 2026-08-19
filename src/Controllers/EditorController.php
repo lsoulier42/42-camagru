@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Compositor;
-use App\Core\Database;
 use App\Core\GifEncoder;
 use App\Core\Request;
 use App\Core\Session;
@@ -20,12 +19,8 @@ final class EditorController extends BaseController
     private const int PHOTO_W = 480;
     private const int PHOTO_H = 360;
 
-    private readonly ImageRepository $images;
-
-    /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
-    public function __construct(?ImageRepository $images = null)
+    public function __construct(private readonly ImageRepository $images)
     {
-        $this->images = $images ?? new ImageRepository(Database::pdo());
     }
 
     public function index(): void

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Database;
 use App\Core\Env;
 use App\Core\Mailer;
 use App\Core\Request;
@@ -15,14 +14,10 @@ use App\Repositories\UserRepository;
 
 final class AuthController extends BaseController
 {
-    private readonly UserRepository $users;
-    private readonly TokenRepository $tokens;
-
-    /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
-    public function __construct(?UserRepository $users = null, ?TokenRepository $tokens = null)
-    {
-        $this->users = $users ?? new UserRepository(Database::pdo());
-        $this->tokens = $tokens ?? new TokenRepository(Database::pdo());
+    public function __construct(
+        private readonly UserRepository $users,
+        private readonly TokenRepository $tokens,
+    ) {
     }
 
     // ---------------------------------------------------------------

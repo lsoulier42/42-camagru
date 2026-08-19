@@ -8,11 +8,17 @@ namespace App\Core;
  * Routeur minimal : correspondance méthode + chemin, avec support
  * des paramètres dynamiques (`/image/{id}`). Les requêtes inconnues
  * répondent 404 avec une vue dédiée.
+ *
+ * Les contrôleurs sont résolus via le conteneur (injection des dépendances).
  */
 final class Router
 {
     /** @var array<string, array<int, array{path: string, regex: ?string, handler: string}>> */
     private array $routes = [];
+
+    public function __construct(private readonly Container $container)
+    {
+    }
 
     public function get(string $path, string $handler): void
     {
@@ -82,7 +88,7 @@ final class Router
             return;
         }
 
-        $instance = new $class();
+        $instance = $this->container->get($class);
         $instance->$method(...$params);
     }
 }
