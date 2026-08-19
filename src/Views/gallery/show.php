@@ -3,19 +3,22 @@
 use App\Core\Csrf;
 use App\Core\Env;
 use App\Core\View;
+use App\Entities\GalleryImage;
+
+/** @var GalleryImage $image Image détaillée (avec commentaires). */
 
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 
-$image = $image ?? [];
 $currentUserId = $_SESSION['user_id'] ?? null;
 
 // --- Partage social : citation = dernier commentaire (ou message par défaut) ---
+$comments = $image->comments();
 $appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
-$imageUrl = $appUrl . '/image/' . (int) $image['id'];
+$imageUrl = $appUrl . '/image/' . $image->id();
 $quote = 'Découvrez cette image sur Camagru !';
-if (!empty($image['comments'])) {
-    $last = end($image['comments']);
-    $quote = trim((string) $last['content']);
+if ($comments !== []) {
+    $last = end($comments);
+    $quote = trim($last->content());
     if (mb_strlen($quote) > 120) {
         $quote = mb_substr($quote, 0, 117) . '…';
     }
@@ -24,38 +27,38 @@ $shareTwitter = 'https://twitter.com/intent/tweet?url=' . rawurlencode($imageUrl
 $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($imageUrl);
 ?>
 <section class="page-head">
-    <h1>Image de <?= View::e((string) $image['author']) ?></h1>
+    <h1>Image de <?= View::e($image->author()) ?></h1>
     <p class="muted"><a href="/gallery">← Retour à la galerie</a></p>
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
 </section>
 
-<article class="gallery-card gallery-card--detail" id="image-<?= (int) $image['id'] ?>">
+<article class="gallery-card gallery-card--detail" id="image-<?= $image->id() ?>">
     <header class="gallery-card-head">
-        <span class="gallery-author"><?= View::e((string) $image['author']) ?></span>
-        <time class="gallery-date" datetime="<?= View::e((string) $image['created_at']) ?>">
-            <?= View::e(date('d/m/Y H:i', strtotime((string) $image['created_at']))) ?>
+        <span class="gallery-author"><?= View::e($image->author()) ?></span>
+        <time class="gallery-date" datetime="<?= View::e($image->createdAt()->format('Y-m-d H:i:s')) ?>">
+            <?= View::e($image->createdAt()->format('d/m/Y H:i')) ?>
         </time>
     </header>
 
-    <img class="gallery-img gallery-img--detail" src="/uploads/<?= rawurlencode((string) $image['filename']) ?>"
-         alt="Image de <?= View::e((string) $image['author']) ?>">
+    <img class="gallery-img gallery-img--detail" src="/uploads/<?= rawurlencode($image->filename()) ?>"
+         alt="Image de <?= View::e($image->author()) ?>">
 
     <div class="gallery-actions">
         <?php if ($currentUserId !== null): ?>
             <form method="post" action="/gallery/like" class="inline-form js-like-form">
                 <?= Csrf::field() ?>
-                <input type="hidden" name="image_id" value="<?= (int) $image['id'] ?>">
-                <input type="hidden" name="return_path" value="/image/<?= (int) $image['id'] ?>">
+                <input type="hidden" name="image_id" value="<?= $image->id() ?>">
+                <input type="hidden" name="return_path" value="/image/<?= $image->id() ?>">
                 <button type="submit"
-                        class="like-btn <?= $image['liked'] ? 'like-btn--active' : '' ?>"
-                        aria-label="<?= $image['liked'] ? 'Retirer mon like' : 'J\'aime' ?>">
-                    ♥ <?= (int) $image['likes_count'] ?>
+                        class="like-btn <?= $image->liked() ? 'like-btn--active' : '' ?>"
+                        aria-label="<?= $image->liked() ? 'Retirer mon like' : 'J\'aime' ?>">
+                    ♥ <?= $image->likesCount() ?>
                 </button>
             </form>
         <?php else: ?>
-            <a class="like-btn" href="/login" title="Connectez-vous pour aimer">♥ <?= (int) $image['likes_count'] ?></a>
+            <a class="like-btn" href="/login" title="Connectez-vous pour aimer">♥ <?= $image->likesCount() ?></a>
         <?php endif; ?>
-        <span class="gallery-comments-count">💬 <?= (int) $image['comments_count'] ?></span>
+        <span class="gallery-comments-count">💬 <?= $image->commentsCount() ?></span>
 
         <div class="gallery-share">
             <a class="share-link share-link--x" target="_blank" rel="noopener"
@@ -66,13 +69,13 @@ $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode(
     </div>
 
     <div class="gallery-comments">
-        <?php if ($image['comments'] === []): ?>
+        <?php if ($comments === []): ?>
             <p class="muted">Aucun commentaire pour l'instant.</p>
         <?php else: ?>
-            <?php foreach ($image['comments'] as $comment): ?>
+            <?php foreach ($comments as $comment): ?>
                 <p class="comment">
-                    <strong><?= View::e((string) $comment['author']) ?></strong>
-                    : <?= View::e((string) $comment['content']) ?>
+                    <strong><?= View::e($comment->author()) ?></strong>
+                    : <?= View::e($comment->content()) ?>
                 </p>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -81,10 +84,10 @@ $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode(
     <?php if ($currentUserId !== null): ?>
         <form method="post" action="/gallery/comment" class="comment-form js-comment-form">
             <?= Csrf::field() ?>
-            <input type="hidden" name="image_id" value="<?= (int) $image['id'] ?>">
-            <input type="hidden" name="return_path" value="/image/<?= (int) $image['id'] ?>">
-            <label class="visually-hidden" for="comment-<?= (int) $image['id'] ?>">Ajouter un commentaire</label>
-            <textarea id="comment-<?= (int) $image['id'] ?>" name="content" rows="3" maxlength="500"
+            <input type="hidden" name="image_id" value="<?= $image->id() ?>">
+            <input type="hidden" name="return_path" value="/image/<?= $image->id() ?>">
+            <label class="visually-hidden" for="comment-<?= $image->id() ?>">Ajouter un commentaire</label>
+            <textarea id="comment-<?= $image->id() ?>" name="content" rows="3" maxlength="500"
                       placeholder="Ajouter un commentaire…" required></textarea>
             <button type="submit" class="btn btn--primary">Envoyer</button>
         </form>

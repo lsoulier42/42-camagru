@@ -2,9 +2,10 @@
 
 use App\Core\Csrf;
 use App\Core\View;
+use App\Entities\Image;
 
 /** @var list<string> $overlays Noms des PNG superposables disponibles. */
-/** @var list<array<string, mixed>> $myImages Images de l'utilisateur (vignettes). */
+/** @var list<Image> $myImages Images de l'utilisateur (vignettes). */
 
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
@@ -76,13 +77,13 @@ View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
             <div class="thumb-grid">
                 <?php foreach ($myImages as $image): ?>
                     <figure class="thumb">
-                        <img src="/uploads/<?= rawurlencode($image['filename']) ?>"
-                             alt="Photo du <?= View::e(date('d/m/Y H:i', strtotime((string) $image['created_at']))) ?>"
+                        <img src="/uploads/<?= rawurlencode($image->filename()) ?>"
+                             alt="Photo du <?= View::e($image->createdAt()->format('d/m/Y H:i')) ?>"
                              loading="lazy">
                         <figcaption>
                             <form method="post" action="/editor/delete">
                                 <?= Csrf::field() ?>
-                                <input type="hidden" name="image_id" value="<?= (int) $image['id'] ?>">
+                                <input type="hidden" name="image_id" value="<?= $image->id() ?>">
                                 <button type="submit" class="btn btn--danger btn--small"
                                         data-confirm="Supprimer définitivement cette image ?">Supprimer</button>
                             </form>
