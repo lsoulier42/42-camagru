@@ -9,7 +9,7 @@ use App\Core\GifEncoder;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\View;
-use App\Models\Image;
+use App\Repositories\ImageRepository;
 use GdImage;
 
 final class EditorController extends BaseController
@@ -18,6 +18,10 @@ final class EditorController extends BaseController
     private const int MAX_DIMENSION = 2048;
     private const int PHOTO_W = 480;
     private const int PHOTO_H = 360;
+
+    public function __construct(private readonly ImageRepository $images)
+    {
+    }
 
     public function index(): void
     {
@@ -28,7 +32,7 @@ final class EditorController extends BaseController
         View::render('editor/index', [
             'pageTitle' => 'Éditeur — Camagru',
             'overlays' => self::listOverlays(),
-            'myImages' => Image::findByUser((int) $_SESSION['user_id']),
+            'myImages' => $this->images->findByUser((int) $_SESSION['user_id']),
         ]);
     }
 
@@ -226,19 +230,19 @@ final class EditorController extends BaseController
         $imageId = (int) Request::post('image_id');
         $userId = (int) $_SESSION['user_id'];
 
-        $image = Image::findById($imageId);
+        $image = $this->images->findById($imageId);
         if ($image === null) {
             Session::flash('error', 'Cette image n\'existe plus.');
             $this->redirect('/editor');
         }
 
-        if ((int) $image['author_id'] !== $userId) {
+        if ($image->userId() !== $userId) {
             Session::flash('error', 'Vous ne pouvez supprimer que vos propres images.');
             $this->redirect('/editor');
         }
 
-        $file = APP_ROOT . '/public/uploads/' . $image['filename'];
-        if (Image::deleteOwned($imageId, $userId) && is_file($file)) {
+        $file = APP_ROOT . '/public/uploads/' . $image->filename();
+        if ($this->images->deleteOwned($imageId, $userId) && is_file($file)) {
             @unlink($file);
         }
 
@@ -260,7 +264,10 @@ final class EditorController extends BaseController
         return self::overlayDir() . '/' . $name;
     }
 
-    /** Liste des PNG superposables du dossier (fichiers sûrs uniquement). */
+    /** Liste des PNG superposables du dossier (fichiers sûrs uniquement).
+     *
+     * @return list<string>
+     */
     private static function listOverlays(): array
     {
         $files = glob(self::overlayDir() . '/*.png');
@@ -329,7 +336,7 @@ final class EditorController extends BaseController
         }
         imagedestroy($image);
 
-        Image::create((int) $_SESSION['user_id'], $filename);
+        $this->images->create((int) $_SESSION['user_id'], $filename);
 
         Session::flash('success', 'Image publiée dans la galerie !');
         $this->redirect('/editor');
@@ -346,7 +353,7 @@ final class EditorController extends BaseController
             $this->redirect('/editor');
         }
 
-        Image::create((int) $_SESSION['user_id'], $filename);
+        $this->images->create((int) $_SESSION['user_id'], $filename);
 
         Session::flash('success', 'GIF animé publié dans la galerie !');
         $this->redirect('/editor');

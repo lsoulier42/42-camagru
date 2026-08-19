@@ -3,9 +3,11 @@
 *.env
 !.env.example
 
-# PHP / Composer (pas de dépendances autorisées, mais au cas où)
+# PHP / Composer — vendor ignoré, composer.lock versionné (déploiement reproductible)
 /vendor/
-composer.lock
+
+# PHPUnit
+/.phpunit.cache/
 
 # Docker
 /docker-data/

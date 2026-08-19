@@ -4,3 +4,7 @@ docker-data
 .env
 *.log
 tmp
+
+# Outils de développement (hors contexte de build)
+/vendor/
+/tests/

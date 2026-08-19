@@ -2,6 +2,12 @@
 
 use App\Core\Csrf;
 use App\Core\View;
+use App\Entities\GalleryImage;
+
+/** @var list<GalleryImage> $images Images de la page courante (avec commentaires). */
+/** @var int $page Numéro de page courant. */
+/** @var int $totalPages Nombre total de pages. */
+/** @var int $total Nombre total d'images. */
 
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
