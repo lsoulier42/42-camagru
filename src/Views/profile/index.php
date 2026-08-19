@@ -27,16 +27,16 @@ View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
         <div class="form-field">
             <label for="username">Nom d'utilisateur</label>
             <input type="text" id="username" name="username" minlength="3" maxlength="50"
-                   value="<?= View::e($old['username'] ?? $user->username()) ?>" autocomplete="username" required>
+                   value="<?= View::e($old['username'] ?? $user->username) ?>" autocomplete="username" required>
         </div>
 
         <div class="form-field">
             <label for="email">Adresse email</label>
             <input type="email" id="email" name="email" maxlength="255"
-                   value="<?= View::e($old['email'] ?? $user->email()) ?>" autocomplete="email" required>
+                   value="<?= View::e($old['email'] ?? $user->email) ?>" autocomplete="email" required>
         </div>
 
-        <?php $notifyChecked = $old['notify_comments'] ?? $user->notifyComments(); ?>
+        <?php $notifyChecked = $old['notify_comments'] ?? $user->notifyComments; ?>
         <div class="form-field checkbox-field">
             <label>
                 <input type="checkbox" name="notify_comments" <?= $notifyChecked ? 'checked' : '' ?>>

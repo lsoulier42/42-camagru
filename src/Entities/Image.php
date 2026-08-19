@@ -11,6 +11,14 @@ use DateTimeImmutable;
  */
 final class Image
 {
+    public function __construct(
+        public readonly int $id,
+        public readonly int $userId,
+        public readonly string $filename,
+        public readonly DateTimeImmutable $createdAt,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute de la table `images`
      *                                  (clés : id, user_id, filename, created_at).
@@ -23,33 +31,5 @@ final class Image
             filename: (string) $row['filename'],
             createdAt: new DateTimeImmutable((string) $row['created_at']),
         );
-    }
-
-    private function __construct(
-        private readonly int $id,
-        private readonly int $userId,
-        private readonly string $filename,
-        private readonly DateTimeImmutable $createdAt,
-    ) {
-    }
-
-    public function id(): int
-    {
-        return $this->id;
-    }
-
-    public function userId(): int
-    {
-        return $this->userId;
-    }
-
-    public function filename(): string
-    {
-        return $this->filename;
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 }

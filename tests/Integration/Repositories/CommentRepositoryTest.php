@@ -43,12 +43,12 @@ final class CommentRepositoryTest extends TestCase
 
         $comments = $this->comments->findForImage($imageId);
         self::assertCount(2, $comments);
-        self::assertSame('Premier commentaire', $comments[0]->content());
-        self::assertSame('Deuxième commentaire', $comments[1]->content());
-        self::assertSame('bob', $comments[0]->author()); // jointure utilisateur
-        self::assertSame('alice', $comments[1]->author());
-        self::assertSame($imageId, $comments[0]->imageId());
-        self::assertSame($bob, $comments[0]->userId());
+        self::assertSame('Premier commentaire', $comments[0]->content);
+        self::assertSame('Deuxième commentaire', $comments[1]->content);
+        self::assertSame('bob', $comments[0]->author); // jointure utilisateur
+        self::assertSame('alice', $comments[1]->author);
+        self::assertSame($imageId, $comments[0]->imageId);
+        self::assertSame($bob, $comments[0]->userId);
     }
 
     public function testFindForImageReturnsEmptyWhenNone(): void

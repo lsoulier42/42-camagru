@@ -38,7 +38,7 @@ final class GalleryController extends BaseController
 
         // Commentaires pré-chargés pour chaque image de la page (DTO immuable).
         $images = array_map(
-            fn (GalleryImage $image) => $image->withComments($this->comments->findForImage($image->id())),
+            fn (GalleryImage $image) => $image->withComments($this->comments->findForImage($image->id)),
             $images
         );
 
@@ -74,10 +74,10 @@ final class GalleryController extends BaseController
             return;
         }
 
-        $image = $image->withComments($this->comments->findForImage($image->id()));
+        $image = $image->withComments($this->comments->findForImage($image->id));
 
         View::render('gallery/show', [
-            'pageTitle' => 'Image de ' . $image->author() . ' — Camagru',
+            'pageTitle' => 'Image de ' . $image->author . ' — Camagru',
             'image' => $image,
         ]);
     }
@@ -143,7 +143,7 @@ final class GalleryController extends BaseController
 
         // Notification email à l'auteur (sauf si c'est lui-même ou préférence désactivée).
         $this->notifications->notifyComment(
-            $image->userId(),
+            $image->userId,
             $commenterId,
             (string) $_SESSION['username'],
             $content

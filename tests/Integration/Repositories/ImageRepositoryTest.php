@@ -43,9 +43,9 @@ final class ImageRepositoryTest extends TestCase
         $image = $this->images->findById($imageId);
         self::assertNotNull($image);
         self::assertInstanceOf(Image::class, $image);
-        self::assertSame('img_abc.png', $image->filename());
-        self::assertSame($authorId, $image->userId());
-        self::assertNotNull($image->createdAt());
+        self::assertSame('img_abc.png', $image->filename);
+        self::assertSame($authorId, $image->userId);
+        self::assertNotNull($image->createdAt);
     }
 
     public function testFindByIdReturnsNullWhenMissing(): void
@@ -76,7 +76,7 @@ final class ImageRepositoryTest extends TestCase
         // Les deux images d'alice, la plus récente d'abord.
         $images = $this->images->findByUser($alice);
         self::assertCount(2, $images);
-        self::assertSame([$second, $first], array_map(static fn (Image $i) => $i->id(), $images));
+        self::assertSame([$second, $first], array_map(static fn (Image $i) => $i->id, $images));
     }
 
     public function testFindPageWithCountersAndLikedFlag(): void
@@ -93,20 +93,20 @@ final class ImageRepositoryTest extends TestCase
         $page = $this->images->findPage(1, 6, $bob);
         self::assertCount(2, $page);
         $first = $page[0];
-        self::assertSame($imageId2, $first->id()); // la plus récente d'abord
-        self::assertSame('alice', $first->author());
-        self::assertSame(0, $first->likesCount());
-        self::assertFalse($first->liked());
+        self::assertSame($imageId2, $first->id); // la plus récente d'abord
+        self::assertSame('alice', $first->author);
+        self::assertSame(0, $first->likesCount);
+        self::assertFalse($first->liked);
 
         $second = $page[1];
-        self::assertSame($imageId, $second->id());
-        self::assertSame(1, $second->likesCount());
-        self::assertSame(1, $second->commentsCount());
-        self::assertTrue($second->liked());
+        self::assertSame($imageId, $second->id);
+        self::assertSame(1, $second->likesCount);
+        self::assertSame(1, $second->commentsCount);
+        self::assertTrue($second->liked);
 
         // Vue en tant que l'auteur Alice : le drapeau « liké » est à faux.
         $pageAsAuthor = $this->images->findPage(1, 6, $alice);
-        self::assertFalse($pageAsAuthor[1]->liked());
+        self::assertFalse($pageAsAuthor[1]->liked);
     }
 
     public function testFindPagePagination(): void
@@ -132,11 +132,11 @@ final class ImageRepositoryTest extends TestCase
 
         $detail = $this->images->findForDetail($imageId, $bob);
         self::assertNotNull($detail);
-        self::assertSame($imageId, $detail->id());
-        self::assertSame('alice', $detail->author());
-        self::assertSame(1, $detail->likesCount());
-        self::assertSame(1, $detail->commentsCount());
-        self::assertTrue($detail->liked());
+        self::assertSame($imageId, $detail->id);
+        self::assertSame('alice', $detail->author);
+        self::assertSame(1, $detail->likesCount);
+        self::assertSame(1, $detail->commentsCount);
+        self::assertTrue($detail->liked);
 
         self::assertNull($this->images->findForDetail(999999, $bob));
     }

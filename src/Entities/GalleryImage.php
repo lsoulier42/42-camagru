@@ -7,12 +7,28 @@ namespace App\Entities;
 use DateTimeImmutable;
 
 /**
- * DTO de lecture pour les pages galerie et détail : une `Image` enrichie
- * de l'auteur, des compteurs, du drapeau « aimée par le visiteur » et
- * (après withComments) des commentaires. Immuable.
+ * DTO de lecture (projection) pour les pages galerie et détail : une image
+ * enrichie de l'auteur, des compteurs, du drapeau « aimée par le visiteur »
+ * et (après withComments) des commentaires. Immuable, tout en propriétés.
  */
 final class GalleryImage
 {
+    /**
+     * @param list<Comment> $comments
+     */
+    public function __construct(
+        public readonly int $id,
+        public readonly int $authorId,
+        public readonly string $filename,
+        public readonly DateTimeImmutable $createdAt,
+        public readonly string $author,
+        public readonly int $likesCount,
+        public readonly int $commentsCount,
+        public readonly bool $liked,
+        public readonly array $comments,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute des requêtes de lecture
      *                                  (clés : id, filename, created_at,
@@ -22,12 +38,10 @@ final class GalleryImage
     public static function fromRow(array $row): self
     {
         return new self(
-            image: Image::fromRow([
-                'id' => $row['id'],
-                'user_id' => $row['author_id'],
-                'filename' => $row['filename'],
-                'created_at' => $row['created_at'],
-            ]),
+            id: (int) $row['id'],
+            authorId: (int) $row['author_id'],
+            filename: (string) $row['filename'],
+            createdAt: new DateTimeImmutable((string) $row['created_at']),
             author: (string) $row['author'],
             likesCount: (int) $row['likes_count'],
             commentsCount: (int) $row['comments_count'],
@@ -42,71 +56,15 @@ final class GalleryImage
     public function withComments(array $comments): self
     {
         return new self(
-            image: $this->image,
+            id: $this->id,
+            authorId: $this->authorId,
+            filename: $this->filename,
+            createdAt: $this->createdAt,
             author: $this->author,
             likesCount: $this->likesCount,
             commentsCount: $this->commentsCount,
             liked: $this->liked,
             comments: $comments,
         );
-    }
-
-    /**
-     * @param list<Comment> $comments
-     */
-    private function __construct(
-        private readonly Image $image,
-        private readonly string $author,
-        private readonly int $likesCount,
-        private readonly int $commentsCount,
-        private readonly bool $liked,
-        private readonly array $comments,
-    ) {
-    }
-
-    public function image(): Image
-    {
-        return $this->image;
-    }
-
-    public function id(): int
-    {
-        return $this->image->id();
-    }
-
-    public function filename(): string
-    {
-        return $this->image->filename();
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->image->createdAt();
-    }
-
-    public function author(): string
-    {
-        return $this->author;
-    }
-
-    public function likesCount(): int
-    {
-        return $this->likesCount;
-    }
-
-    public function commentsCount(): int
-    {
-        return $this->commentsCount;
-    }
-
-    public function liked(): bool
-    {
-        return $this->liked;
-    }
-
-    /** @return list<Comment> */
-    public function comments(): array
-    {
-        return $this->comments;
     }
 }

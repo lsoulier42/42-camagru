@@ -86,7 +86,7 @@ src/
 
 ### Étape 5 — Tests + CI
 
-- **Unitaires** : entités (`fromRow`, accesseurs typés), services purs (règles de validation) avec repositories factices.
+- **Unitaires** : entités (`fromRow`, propriétés publiques `readonly` promues au constructeur — PHP 8.1+, pas de getters), services purs (règles de validation) avec repositories factices.
 - **Intégration** : repositories contre la base MySQL dockerisée (réutiliser le pattern du `scripts/seed.php`). ✅ **Décision actée** : base réelle (le SQL est MySQL-typé : `ENUM`, `UNSIGNED`, `LIMIT :x` — non portable vers SQLite sans adaptation).
 - **CI** : ajouter `composer install`, `phpstan analyse --level=6`, `phpunit` dans `.github/workflows/ci.yml`, en gardant les smoke tests Docker.
 
@@ -101,6 +101,7 @@ src/
 1. **PR 0** ✅ : filet de sécurité (Composer dev, PHPStan, PHPUnit, tests d'intégration sur l'existant).
 2. **PR 1** ✅ : entités `User`/`Token` + `UserRepository`/`TokenRepository`, `AuthController` et `GalleryController` (notification auteur) migrés, vue profil sur accesseurs typés, `seed.php` migré, `Models/User.php` + `Models/Token.php` supprimés. Injection manuelle (fallback `Database::pdo()`) en attendant le conteneur de la PR 3. Tests adaptés (32 tests / 101 assertions) + tests unitaires entités.
 3. **PR 2** ✅ : entités `Image`/`Comment`/`Like` + DTO `GalleryImage` (compose une `Image` + auteur + compteurs + `liked`, immuable via `withComments`), `ImageRepository`/`CommentRepository`/`LikeRepository`, `GalleryController`/`EditorController`/`seed.php` migrés, vues galerie/éditeur sur accesseurs typés (`createdAt()->format(...)`), couche `src/Models/` supprimée. Tests adaptés (38 tests / 132 assertions) + tests unitaires entités/DTO.
+   - **Style des entités (revue)** : réécrites en promotion au constructeur (PHP 8.1+) — propriétés publiques `readonly`, plus de `private` + getters ; `GalleryImage` aplati en DTO 100 % propriétés (plus d'accesseurs délégués). Migrations contrôleurs/services/vues/tests + `seed.php` (60 tests / 175 assertions toujours verts).
 4. **PR 3** ✅ : `Container` + `Router`, constructeurs sans fallback, `HomeController` via `HealthCheck`.
 5. **PR 4** ✅ : services (`AuthService`, `NotificationService`), contrôleurs fins.
 6. **PR 5** ✅ : nettoyage pré-public (README, licence MIT, audit d'historique sain).

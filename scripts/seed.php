@@ -42,7 +42,7 @@ foreach ([
         $userRepo->activate($id);
         $user = $userRepo->findById($id);
     }
-    $users[$name] = $user->id();
+    $users[$name] = $user->id;
 }
 
 $authors = array_values($users);

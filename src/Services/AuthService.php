@@ -100,11 +100,11 @@ final class AuthService
     public function sendResetLink(string $email): void
     {
         $user = $this->users->findByEmail($email);
-        if ($user === null || !$user->isActive()) {
+        if ($user === null || !$user->isActive) {
             return;
         }
 
-        $token = $this->tokens->create($user->id(), 'reset', 3600); // 1 h
+        $token = $this->tokens->create($user->id, 'reset', 3600); // 1 h
         $link = Env::get('APP_URL', 'http://localhost:8080') . '/reset?token=' . $token;
         $body = '<p>Bonjour,</p>'
             . '<p>Vous avez demandé la réinitialisation de votre mot de passe Camagru :</p>'
@@ -147,11 +147,11 @@ final class AuthService
         string $newPassword,
         string $newPasswordConfirm,
     ): array {
-        $errors = $this->validateIdentity($username, $email, $user->id());
+        $errors = $this->validateIdentity($username, $email, $user->id);
 
         // Changement de mot de passe : mot de passe actuel obligatoire pour confirmer.
         if ($newPassword !== '' || $newPasswordConfirm !== '') {
-            if (!password_verify($currentPassword, $user->passwordHash())) {
+            if (!password_verify($currentPassword, $user->passwordHash)) {
                 $errors[] = 'Le mot de passe actuel est incorrect.';
             } else {
                 $errors = array_merge($errors, self::validatePassword($newPassword, $newPasswordConfirm));
@@ -189,10 +189,10 @@ final class AuthService
     /** Applique les modifications du profil ; change le mot de passe si demandé. */
     public function updateProfile(User $user, string $username, string $email, bool $notifyComments, ?string $newPassword): void
     {
-        $this->users->updateProfile($user->id(), $username, $email, $notifyComments);
+        $this->users->updateProfile($user->id, $username, $email, $notifyComments);
 
         if ($newPassword !== null && $newPassword !== '') {
-            $this->users->updatePassword($user->id(), password_hash($newPassword, PASSWORD_DEFAULT));
+            $this->users->updatePassword($user->id, password_hash($newPassword, PASSWORD_DEFAULT));
         }
     }
 }

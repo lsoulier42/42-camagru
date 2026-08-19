@@ -23,15 +23,15 @@ final class GalleryImageTest extends TestCase
             'liked' => 1,
         ]);
 
-        self::assertSame(12, $image->id());
-        self::assertSame('img_abc.png', $image->filename());
-        self::assertSame('2026-08-19 10:30:00', $image->createdAt()->format('Y-m-d H:i:s'));
-        self::assertSame(4, $image->image()->userId());
-        self::assertSame('alice', $image->author());
-        self::assertSame(3, $image->likesCount());
-        self::assertSame(2, $image->commentsCount());
-        self::assertTrue($image->liked());
-        self::assertSame([], $image->comments());
+        self::assertSame(12, $image->id);
+        self::assertSame(4, $image->authorId);
+        self::assertSame('img_abc.png', $image->filename);
+        self::assertSame('2026-08-19 10:30:00', $image->createdAt->format('Y-m-d H:i:s'));
+        self::assertSame('alice', $image->author);
+        self::assertSame(3, $image->likesCount);
+        self::assertSame(2, $image->commentsCount);
+        self::assertTrue($image->liked);
+        self::assertSame([], $image->comments);
     }
 
     public function testWithCommentsIsImmutable(): void
@@ -58,10 +58,10 @@ final class GalleryImageTest extends TestCase
 
         $withComments = $image->withComments([$comment]);
 
-        self::assertSame([$comment], $withComments->comments());
+        self::assertSame([$comment], $withComments->comments);
         // L'instance d'origine reste inchangée (immuabilité).
-        self::assertSame([], $image->comments());
-        self::assertSame(12, $withComments->id());
-        self::assertSame('alice', $withComments->author());
+        self::assertSame([], $image->comments);
+        self::assertSame(12, $withComments->id);
+        self::assertSame('alice', $withComments->author);
     }
 }

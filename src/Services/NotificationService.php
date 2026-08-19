@@ -26,17 +26,17 @@ final class NotificationService
         }
 
         $author = $this->users->findById($authorId);
-        if ($author === null || !$author->notifyComments()) {
+        if ($author === null || !$author->notifyComments) {
             return;
         }
 
         $link = Env::get('APP_URL', 'http://localhost:8080') . '/gallery';
-        $body = '<p>Bonjour <strong>' . htmlspecialchars($author->username(), ENT_QUOTES) . '</strong>,</p>'
+        $body = '<p>Bonjour <strong>' . htmlspecialchars($author->username, ENT_QUOTES) . '</strong>,</p>'
             . '<p>' . htmlspecialchars($commenterUsername, ENT_QUOTES)
             . ' a commenté votre image :</p>'
             . '<blockquote style="margin:1rem 0;padding:.75rem 1rem;border-left:3px solid #e1306c;background:#f6f7f9;">'
             . nl2br(htmlspecialchars($content, ENT_QUOTES)) . '</blockquote>'
             . '<p><a href="' . $link . '">Voir la galerie</a></p>';
-        Mailer::send($author->email(), 'Nouveau commentaire sur votre image', $body);
+        Mailer::send($author->email, 'Nouveau commentaire sur votre image', $body);
     }
 }

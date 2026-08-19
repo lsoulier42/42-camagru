@@ -77,13 +77,13 @@ View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
             <div class="thumb-grid">
                 <?php foreach ($myImages as $image): ?>
                     <figure class="thumb">
-                        <img src="/uploads/<?= rawurlencode($image->filename()) ?>"
-                             alt="Photo du <?= View::e($image->createdAt()->format('d/m/Y H:i')) ?>"
+                        <img src="/uploads/<?= rawurlencode($image->filename) ?>"
+                             alt="Photo du <?= View::e($image->createdAt->format('d/m/Y H:i')) ?>"
                              loading="lazy">
                         <figcaption>
                             <form method="post" action="/editor/delete">
                                 <?= Csrf::field() ?>
-                                <input type="hidden" name="image_id" value="<?= $image->id() ?>">
+                                <input type="hidden" name="image_id" value="<?= $image->id ?>">
                                 <button type="submit" class="btn btn--danger btn--small"
                                         data-confirm="Supprimer définitivement cette image ?">Supprimer</button>
                             </form>

@@ -106,9 +106,9 @@ final class AuthController extends BaseController
             $errors[] = 'Renseignez votre nom d\'utilisateur et votre mot de passe.';
         } else {
             $user = $this->users->findByLogin($login);
-            if ($user === null || !password_verify($password, $user->passwordHash())) {
+            if ($user === null || !password_verify($password, $user->passwordHash)) {
                 $errors[] = 'Identifiants incorrects.';
-            } elseif (!$user->isActive()) {
+            } elseif (!$user->isActive) {
                 $errors[] = 'Votre compte n\'est pas encore confirmé : vérifiez votre boîte mail.';
             }
         }
@@ -124,10 +124,10 @@ final class AuthController extends BaseController
 
         // Anti fixation de session : nouveau identifiant après authentification.
         session_regenerate_id(true);
-        $_SESSION['user_id'] = $user->id();
-        $_SESSION['username'] = $user->username();
+        $_SESSION['user_id'] = $user->id;
+        $_SESSION['username'] = $user->username;
 
-        Session::flash('success', 'Bienvenue, ' . $user->username() . ' !');
+        Session::flash('success', 'Bienvenue, ' . $user->username . ' !');
         $this->redirect('/');
     }
 

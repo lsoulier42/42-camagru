@@ -11,6 +11,14 @@ use DateTimeImmutable;
  */
 final class Like
 {
+    public function __construct(
+        public readonly int $id,
+        public readonly int $imageId,
+        public readonly int $userId,
+        public readonly DateTimeImmutable $createdAt,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $row Ligne brute de la table `likes`
      *                                  (clés : id, image_id, user_id, created_at).
@@ -23,33 +31,5 @@ final class Like
             userId: (int) $row['user_id'],
             createdAt: new DateTimeImmutable((string) $row['created_at']),
         );
-    }
-
-    private function __construct(
-        private readonly int $id,
-        private readonly int $imageId,
-        private readonly int $userId,
-        private readonly DateTimeImmutable $createdAt,
-    ) {
-    }
-
-    public function id(): int
-    {
-        return $this->id;
-    }
-
-    public function imageId(): int
-    {
-        return $this->imageId;
-    }
-
-    public function userId(): int
-    {
-        return $this->userId;
-    }
-
-    public function createdAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 }
