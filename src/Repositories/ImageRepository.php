@@ -31,9 +31,9 @@ final class ImageRepository
 
     public function countAll(): int
     {
-        $stmt = $this->pdo->query('SELECT COUNT(*) AS total FROM images');
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM images');
 
-        return (int) $stmt->fetch()['total'];
+        return (int) $stmt->fetchColumn();
     }
 
     /**
