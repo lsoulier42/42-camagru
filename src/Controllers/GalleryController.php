@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Database;
 use App\Core\Env;
 use App\Core\Mailer;
 use App\Core\Request;
@@ -20,22 +19,12 @@ final class GalleryController extends BaseController
 {
     private const int PER_PAGE = 6; // exigence du sujet : au moins 5 par page
 
-    private readonly UserRepository $users;
-    private readonly ImageRepository $images;
-    private readonly CommentRepository $comments;
-    private readonly LikeRepository $likes;
-
-    /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
     public function __construct(
-        ?UserRepository $users = null,
-        ?ImageRepository $images = null,
-        ?CommentRepository $comments = null,
-        ?LikeRepository $likes = null,
+        private readonly UserRepository $users,
+        private readonly ImageRepository $images,
+        private readonly CommentRepository $comments,
+        private readonly LikeRepository $likes,
     ) {
-        $this->users = $users ?? new UserRepository(Database::pdo());
-        $this->images = $images ?? new ImageRepository(Database::pdo());
-        $this->comments = $comments ?? new CommentRepository(Database::pdo());
-        $this->likes = $likes ?? new LikeRepository(Database::pdo());
     }
 
     public function index(): void

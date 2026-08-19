@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/src/bootstrap.php';
 
+use App\Core\Container;
+use App\Core\Database;
 use App\Core\Router;
 
-$router = new Router();
+// Conteneur : seule fabrique explicite nécessaire (PDO), le reste est autowiré.
+$container = new Container();
+$container->set(PDO::class, static fn (): PDO => Database::pdo());
+
+$router = new Router($container);
 
 // Routes publiques
 $router->get('/', 'Home@index');

@@ -70,13 +70,13 @@ src/
   - `TokenRepository` : `create`, `findUser`, `deleteFor`.
 - Supprimer `src/Models/` une fois contrôleurs et vues migrés.
 
-### Étape 3 — Injection & wiring (`App\Core\Container`)
+### Étape 3 — Injection & wiring (`App\Core\Container`) ✅
 
-- Petit conteneur maison (aucune lib) : résolution des contrôleurs par réflexion sur le constructeur, ou fabriques explicites dans `bootstrap.php`.
-- `Router::dispatch()` résout le contrôleur via le conteneur au lieu de `new $class()`.
-- Les contrôleurs reçoivent leurs repositories en constructeur :
-  `public function __construct(private readonly UserRepository $users, private readonly TokenRepository $tokens) {}`
-- `HomeController` : remplacer l'appel direct à `Database` par un `HealthCheck`/`Database::ping()` injecté.
+- ✅ **PR 3 faite** : `App\Core\Container` maison (fabriques explicites + autowiring par réflexion, instances en singleton) ; seule fabrique enregistrée : `PDO` → `Database::pdo()` (index.php).
+- ✅ `Router` résout les contrôleurs via le conteneur (plus de `new $class()`).
+- ✅ Constructeurs non-nullables `public function __construct(private readonly UserRepository $users, ...)` — les fallbacks `Database::pdo()` ont disparu.
+- ✅ `App\Core\HealthCheck` (PDO injecté) : `HomeController` n'accède plus directement à `Database`.
+- ✅ Test unitaire du conteneur (autowiring, singletons, fabriques, erreurs) — 43 tests / 139 assertions.
 
 ### Étape 4 — Services (contrôleurs fins) — recommandé avant mise en public
 
@@ -103,8 +103,8 @@ src/
 
 1. **PR 0** ✅ : filet de sécurité (Composer dev, PHPStan, PHPUnit, tests d'intégration sur l'existant).
 2. **PR 1** ✅ : entités `User`/`Token` + `UserRepository`/`TokenRepository`, `AuthController` et `GalleryController` (notification auteur) migrés, vue profil sur accesseurs typés, `seed.php` migré, `Models/User.php` + `Models/Token.php` supprimés. Injection manuelle (fallback `Database::pdo()`) en attendant le conteneur de la PR 3. Tests adaptés (32 tests / 101 assertions) + tests unitaires entités.
-3. **PR 2** : `ImageRepository` + `CommentRepository` + `LikeRepository` + `GalleryImage`, migration `GalleryController`/`EditorController` + vues galerie/éditeur.
-4. **PR 3** : suppression de `src/Models/`, `Container` + `Router`, `HomeController`.
+3. **PR 2** ✅ : entités `Image`/`Comment`/`Like` + DTO `GalleryImage` (compose une `Image` + auteur + compteurs + `liked`, immuable via `withComments`), `ImageRepository`/`CommentRepository`/`LikeRepository`, `GalleryController`/`EditorController`/`seed.php` migrés, vues galerie/éditeur sur accesseurs typés (`createdAt()->format(...)`), couche `src/Models/` supprimée. Tests adaptés (38 tests / 132 assertions) + tests unitaires entités/DTO.
+4. **PR 3** ✅ : `Container` + `Router`, constructeurs sans fallback, `HomeController` via `HealthCheck`.
 5. **PR 4** : services (`AuthService`, `NotificationService`), contrôleurs fins.
 6. **PR 5** : nettoyage pré-public (README, licence, historique).
 
