@@ -137,11 +137,11 @@ final class AuthServiceTest extends TestCase
         $alice = $this->users->findById($aliceId);
 
         // "bob" est pris par un autre compte.
-        $errors = $this->auth->validateProfileUpdate($alice, 'bob', 'alice@example.com', true, '', '', '');
+        $errors = $this->auth->validateProfileUpdate($alice, 'bob', 'alice@example.com', '', '', '');
         self::assertContains('Ce nom d\'utilisateur est déjà pris.', $errors);
 
         // Garder son propre username et email ne déclenche aucune erreur.
-        self::assertSame([], $this->auth->validateProfileUpdate($alice, 'alice', 'alice@example.com', true, '', '', ''));
+        self::assertSame([], $this->auth->validateProfileUpdate($alice, 'alice', 'alice@example.com', '', '', ''));
     }
 
     public function testValidateProfileUpdateRequiresCurrentPassword(): void
@@ -149,10 +149,10 @@ final class AuthServiceTest extends TestCase
         $id = $this->users->create('alice', 'alice@example.com', password_hash('Current123', PASSWORD_DEFAULT));
         $user = $this->users->findById($id);
 
-        $errors = $this->auth->validateProfileUpdate($user, 'alice', 'alice@example.com', true, 'mauvais', 'Newpass456', 'Newpass456');
+        $errors = $this->auth->validateProfileUpdate($user, 'alice', 'alice@example.com', 'mauvais', 'Newpass456', 'Newpass456');
         self::assertContains('Le mot de passe actuel est incorrect.', $errors);
 
-        self::assertSame([], $this->auth->validateProfileUpdate($user, 'alice', 'alice@example.com', true, 'Current123', 'Newpass456', 'Newpass456'));
+        self::assertSame([], $this->auth->validateProfileUpdate($user, 'alice', 'alice@example.com', 'Current123', 'Newpass456', 'Newpass456'));
     }
 
     public function testUpdateProfileChangesFieldsAndOptionalPassword(): void

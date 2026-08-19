@@ -269,7 +269,6 @@ final class AuthController extends BaseController
             $user,
             $username,
             $email,
-            $notifyComments,
             $currentPassword,
             $newPassword,
             $newPasswordConfirm,

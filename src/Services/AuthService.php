@@ -30,21 +30,10 @@ final class AuthService
      */
     public function validateRegistration(string $username, string $email, string $password, string $passwordConfirm): array
     {
-        $errors = [];
-
-        if (strlen($username) < 3 || strlen($username) > 50 || !preg_match('/^[A-Za-z0-9_.-]+$/', $username)) {
-            $errors[] = 'Le nom d\'utilisateur doit faire 3 à 50 caractères (lettres, chiffres, . _ -).';
-        } elseif ($this->users->usernameExists($username)) {
-            $errors[] = 'Ce nom d\'utilisateur est déjà pris.';
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
-            $errors[] = 'Adresse email invalide.';
-        } elseif ($this->users->emailExists($email)) {
-            $errors[] = 'Cette adresse email est déjà utilisée.';
-        }
-
-        return array_merge($errors, self::validatePassword($password, $passwordConfirm));
+        return array_merge(
+            $this->validateIdentity($username, $email, null),
+            self::validatePassword($password, $passwordConfirm)
+        );
     }
 
     /**
@@ -154,24 +143,11 @@ final class AuthService
         User $user,
         string $username,
         string $email,
-        bool $notifyComments,
         string $currentPassword,
         string $newPassword,
         string $newPasswordConfirm,
     ): array {
-        $errors = [];
-
-        if (strlen($username) < 3 || strlen($username) > 50 || !preg_match('/^[A-Za-z0-9_.-]+$/', $username)) {
-            $errors[] = 'Le nom d\'utilisateur doit faire 3 à 50 caractères (lettres, chiffres, . _ -).';
-        } elseif ($this->users->usernameExists($username, $user->id())) {
-            $errors[] = 'Ce nom d\'utilisateur est déjà pris.';
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
-            $errors[] = 'Adresse email invalide.';
-        } elseif ($this->users->emailExists($email, $user->id())) {
-            $errors[] = 'Cette adresse email est déjà utilisée.';
-        }
+        $errors = $this->validateIdentity($username, $email, $user->id());
 
         // Changement de mot de passe : mot de passe actuel obligatoire pour confirmer.
         if ($newPassword !== '' || $newPasswordConfirm !== '') {
@@ -180,6 +156,31 @@ final class AuthService
             } else {
                 $errors = array_merge($errors, self::validatePassword($newPassword, $newPasswordConfirm));
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Règles communes username + email (inscription et édition du profil),
+     * en excluant éventuellement le compte courant (édition).
+     *
+     * @return list<string>
+     */
+    private function validateIdentity(string $username, string $email, ?int $exceptId): array
+    {
+        $errors = [];
+
+        if (strlen($username) < 3 || strlen($username) > 50 || !preg_match('/^[A-Za-z0-9_.-]+$/', $username)) {
+            $errors[] = 'Le nom d\'utilisateur doit faire 3 à 50 caractères (lettres, chiffres, . _ -).';
+        } elseif ($this->users->usernameExists($username, $exceptId)) {
+            $errors[] = 'Ce nom d\'utilisateur est déjà pris.';
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+            $errors[] = 'Adresse email invalide.';
+        } elseif ($this->users->emailExists($email, $exceptId)) {
+            $errors[] = 'Cette adresse email est déjà utilisée.';
         }
 
         return $errors;
