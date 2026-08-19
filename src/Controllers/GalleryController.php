@@ -10,9 +10,10 @@ use App\Core\Mailer;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\View;
-use App\Models\Comment;
-use App\Models\Image;
-use App\Models\Like;
+use App\Entities\GalleryImage;
+use App\Repositories\CommentRepository;
+use App\Repositories\ImageRepository;
+use App\Repositories\LikeRepository;
 use App\Repositories\UserRepository;
 
 final class GalleryController extends BaseController
@@ -20,29 +21,39 @@ final class GalleryController extends BaseController
     private const int PER_PAGE = 6; // exigence du sujet : au moins 5 par page
 
     private readonly UserRepository $users;
+    private readonly ImageRepository $images;
+    private readonly CommentRepository $comments;
+    private readonly LikeRepository $likes;
 
     /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
-    public function __construct(?UserRepository $users = null)
-    {
+    public function __construct(
+        ?UserRepository $users = null,
+        ?ImageRepository $images = null,
+        ?CommentRepository $comments = null,
+        ?LikeRepository $likes = null,
+    ) {
         $this->users = $users ?? new UserRepository(Database::pdo());
+        $this->images = $images ?? new ImageRepository(Database::pdo());
+        $this->comments = $comments ?? new CommentRepository(Database::pdo());
+        $this->likes = $likes ?? new LikeRepository(Database::pdo());
     }
 
     public function index(): void
     {
-        $total = Image::countAll();
+        $total = $this->images->countAll();
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
 
         $page = (int) Request::get('page', '1');
         $page = max(1, min($page, $totalPages));
 
         $viewerId = (int) ($_SESSION['user_id'] ?? 0);
-        $images = Image::findPage($page, self::PER_PAGE, $viewerId);
+        $images = $this->images->findPage($page, self::PER_PAGE, $viewerId);
 
-        // Commentaires pré-chargés pour chaque image de la page.
-        foreach ($images as &$image) {
-            $image['comments'] = Comment::findForImage((int) $image['id']);
-        }
-        unset($image);
+        // Commentaires pré-chargés pour chaque image de la page (DTO immuable).
+        $images = array_map(
+            fn (GalleryImage $image) => $image->withComments($this->comments->findForImage($image->id())),
+            $images
+        );
 
         // Pagination AJAX : on renvoie le fragment HTML à insérer.
         if ($this->isAjax()) {
@@ -68,7 +79,7 @@ final class GalleryController extends BaseController
     public function show(string $id): void
     {
         $viewerId = (int) ($_SESSION['user_id'] ?? 0);
-        $image = Image::findForDetail((int) $id, $viewerId);
+        $image = $this->images->findForDetail((int) $id, $viewerId);
 
         if ($image === null) {
             http_response_code(404);
@@ -76,10 +87,10 @@ final class GalleryController extends BaseController
             return;
         }
 
-        $image['comments'] = Comment::findForImage((int) $image['id']);
+        $image = $image->withComments($this->comments->findForImage($image->id()));
 
         View::render('gallery/show', [
-            'pageTitle' => 'Image de ' . $image['author'] . ' — Camagru',
+            'pageTitle' => 'Image de ' . $image->author() . ' — Camagru',
             'image' => $image,
         ]);
     }
@@ -94,7 +105,7 @@ final class GalleryController extends BaseController
         $imageId = (int) Request::post('image_id');
         $page = max(1, (int) Request::post('page', '1'));
 
-        if (Image::findById($imageId) === null) {
+        if ($this->images->findById($imageId) === null) {
             if ($this->isAjax()) {
                 $this->jsonResponse(['ok' => false, 'error' => 'Cette image n\'existe plus.'], 404);
             }
@@ -102,13 +113,13 @@ final class GalleryController extends BaseController
             $this->redirect('/gallery?page=' . $page);
         }
 
-        $liked = Like::toggle($imageId, (int) $_SESSION['user_id']);
+        $liked = $this->likes->toggle($imageId, (int) $_SESSION['user_id']);
 
         if ($this->isAjax()) {
             $this->jsonResponse([
                 'ok' => true,
                 'liked' => $liked,
-                'count' => Like::countFor($imageId),
+                'count' => $this->likes->countFor($imageId),
             ]);
         }
 
@@ -126,7 +137,7 @@ final class GalleryController extends BaseController
         $content = trim(Request::post('content'));
         $page = max(1, (int) Request::post('page', '1'));
 
-        $image = Image::findById($imageId);
+        $image = $this->images->findById($imageId);
         if ($image === null) {
             Session::flash('error', 'Cette image n\'existe plus.');
             $this->redirect('/gallery?page=' . $page);
@@ -141,10 +152,10 @@ final class GalleryController extends BaseController
         }
 
         $commenterId = (int) $_SESSION['user_id'];
-        $commentId = Comment::create($imageId, $commenterId, $content);
+        $commentId = $this->comments->create($imageId, $commenterId, $content);
 
         // Notification email à l'auteur (sauf si c'est lui-même ou préférence désactivée).
-        $authorId = (int) $image['author_id'];
+        $authorId = $image->userId();
         if ($authorId !== $commenterId) {
             $author = $this->users->findById($authorId);
             if ($author !== null && $author->notifyComments()) {
@@ -168,7 +179,7 @@ final class GalleryController extends BaseController
                     'content' => $content,
                     'created_at' => date('d/m/Y H:i'),
                 ],
-                'commentsCount' => Comment::countFor($imageId),
+                'commentsCount' => $this->comments->countFor($imageId),
             ]);
         }
 
@@ -195,7 +206,7 @@ final class GalleryController extends BaseController
 
     /** Rendu du fragment grille + pagination (page complète ou AJAX).
      *
-     * @param list<array<string, mixed>> $images
+     * @param list<GalleryImage> $images
      */
     private function renderGrid(array $images, int $page, int $totalPages, int $total): string
     {

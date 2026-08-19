@@ -13,9 +13,9 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
 
 use App\Core\Database;
-use App\Models\Comment;
-use App\Models\Image;
-use App\Models\Like;
+use App\Repositories\CommentRepository;
+use App\Repositories\ImageRepository;
+use App\Repositories\LikeRepository;
 use App\Repositories\UserRepository;
 
 $uploadsDir = APP_ROOT . '/public/uploads';
@@ -24,7 +24,11 @@ if (!is_dir($uploadsDir)) {
 }
 
 // --- 3 utilisateurs confirmés (idempotent) ---
-$userRepo = new UserRepository(Database::pdo());
+$pdo = Database::pdo();
+$userRepo = new UserRepository($pdo);
+$imageRepo = new ImageRepository($pdo);
+$likeRepo = new LikeRepository($pdo);
+$commentRepo = new CommentRepository($pdo);
 $users = [];
 foreach ([
     ['alice', 'alice@example.com'],
@@ -54,7 +58,6 @@ $colors = [
     [14, 165, 233],
 ];
 
-$pdo = Database::pdo();
 for ($i = 1; $i <= 13; $i++) {
     $author = $authors[$i % $count];
 
@@ -68,7 +71,7 @@ for ($i = 1; $i <= 13; $i++) {
     imagepng($im, $uploadsDir . '/' . $filename);
     imagedestroy($im);
 
-    $imageId = Image::create($author, $filename);
+    $imageId = $imageRepo->create($author, $filename);
 
     // Dates échelonnées : photo i datée de il y a (13 - i) minutes.
     $stmt = $pdo->prepare('UPDATE images SET created_at = NOW() - INTERVAL ? MINUTE WHERE id = ?');
@@ -78,10 +81,10 @@ for ($i = 1; $i <= 13; $i++) {
     if ($i % 2 === 0) {
         foreach ($authors as $liker) {
             if ($liker !== $author) {
-                Like::toggle($imageId, $liker);
+                $likeRepo->toggle($imageId, $liker);
             }
         }
-        Comment::create($imageId, $authors[($i + 1) % $count], 'Superbe création, bravo !');
+        $commentRepo->create($imageId, $authors[($i + 1) % $count], 'Superbe création, bravo !');
     }
 }
 
