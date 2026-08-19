@@ -78,11 +78,11 @@ src/
 - ✅ `App\Core\HealthCheck` (PDO injecté) : `HomeController` n'accède plus directement à `Database`.
 - ✅ Test unitaire du conteneur (autowiring, singletons, fabriques, erreurs) — 43 tests / 139 assertions.
 
-### Étape 4 — Services (contrôleurs fins) — recommandé avant mise en public
+### Étape 4 — Services (contrôleurs fins) ✅
 
-- `AuthService` : validation inscription/profil/mot de passe (sort de `AuthController`), création de compte + jeton + email.
-- `NotificationService` : email « nouveau commentaire » (sort de `GalleryController::comment()`).
-- Les contrôleurs deviennent : lire la requête → appeler le service → rendre/rediriger.
+- ✅ **PR 4 faite** : `App\Services\AuthService` (validations inscription/profil/mot de passe — `validatePassword` pur et statique —, `register` + jeton + email, `confirm`, `sendResetLink` anti-énumération, `reset`, `updateProfile`), `App\Services\NotificationService` (`notifyComment` : auto-commentaire, auteur introuvable et préférence désactivée filtrés).
+- ✅ `AuthController` passe de 385 à ~230 lignes (requête → service → rendu/redirection ; connexion/session restent au contrôleur), `GalleryController` n'accède plus à `Mailer`/`Env`/`UserRepository` (notification via le service).
+- ✅ Tests services : 12 tests d'intégration `AuthService` (comptes, jetons, validations), 4 tests unitaires `validatePassword`, gardes de `NotificationService` — 60 tests / 175 assertions.
 
 ### Étape 5 — Tests + CI
 
@@ -105,7 +105,7 @@ src/
 2. **PR 1** ✅ : entités `User`/`Token` + `UserRepository`/`TokenRepository`, `AuthController` et `GalleryController` (notification auteur) migrés, vue profil sur accesseurs typés, `seed.php` migré, `Models/User.php` + `Models/Token.php` supprimés. Injection manuelle (fallback `Database::pdo()`) en attendant le conteneur de la PR 3. Tests adaptés (32 tests / 101 assertions) + tests unitaires entités.
 3. **PR 2** ✅ : entités `Image`/`Comment`/`Like` + DTO `GalleryImage` (compose une `Image` + auteur + compteurs + `liked`, immuable via `withComments`), `ImageRepository`/`CommentRepository`/`LikeRepository`, `GalleryController`/`EditorController`/`seed.php` migrés, vues galerie/éditeur sur accesseurs typés (`createdAt()->format(...)`), couche `src/Models/` supprimée. Tests adaptés (38 tests / 132 assertions) + tests unitaires entités/DTO.
 4. **PR 3** ✅ : `Container` + `Router`, constructeurs sans fallback, `HomeController` via `HealthCheck`.
-5. **PR 4** : services (`AuthService`, `NotificationService`), contrôleurs fins.
+5. **PR 4** ✅ : services (`AuthService`, `NotificationService`), contrôleurs fins.
 6. **PR 5** : nettoyage pré-public (README, licence, historique).
 
 ## Risques

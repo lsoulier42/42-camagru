@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Env;
-use App\Core\Mailer;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\View;
@@ -13,17 +11,17 @@ use App\Entities\GalleryImage;
 use App\Repositories\CommentRepository;
 use App\Repositories\ImageRepository;
 use App\Repositories\LikeRepository;
-use App\Repositories\UserRepository;
+use App\Services\NotificationService;
 
 final class GalleryController extends BaseController
 {
     private const int PER_PAGE = 6; // exigence du sujet : au moins 5 par page
 
     public function __construct(
-        private readonly UserRepository $users,
         private readonly ImageRepository $images,
         private readonly CommentRepository $comments,
         private readonly LikeRepository $likes,
+        private readonly NotificationService $notifications,
     ) {
     }
 
@@ -144,20 +142,12 @@ final class GalleryController extends BaseController
         $commentId = $this->comments->create($imageId, $commenterId, $content);
 
         // Notification email à l'auteur (sauf si c'est lui-même ou préférence désactivée).
-        $authorId = $image->userId();
-        if ($authorId !== $commenterId) {
-            $author = $this->users->findById($authorId);
-            if ($author !== null && $author->notifyComments()) {
-                $link = Env::get('APP_URL', 'http://localhost:8080') . '/gallery';
-                $body = '<p>Bonjour <strong>' . htmlspecialchars($author->username(), ENT_QUOTES) . '</strong>,</p>'
-                    . '<p>' . htmlspecialchars((string) $_SESSION['username'], ENT_QUOTES)
-                    . ' a commenté votre image :</p>'
-                    . '<blockquote style="margin:1rem 0;padding:.75rem 1rem;border-left:3px solid #e1306c;background:#f6f7f9;">'
-                    . nl2br(htmlspecialchars($content, ENT_QUOTES)) . '</blockquote>'
-                    . '<p><a href="' . $link . '">Voir la galerie</a></p>';
-                Mailer::send($author->email(), 'Nouveau commentaire sur votre image', $body);
-            }
-        }
+        $this->notifications->notifyComment(
+            $image->userId(),
+            $commenterId,
+            (string) $_SESSION['username'],
+            $content
+        );
 
         if ($this->isAjax()) {
             $this->jsonResponse([
