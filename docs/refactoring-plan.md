@@ -90,12 +90,9 @@ src/
 - **Intégration** : repositories contre la base MySQL dockerisée (réutiliser le pattern du `scripts/seed.php`). ✅ **Décision actée** : base réelle (le SQL est MySQL-typé : `ENUM`, `UNSIGNED`, `LIMIT :x` — non portable vers SQLite sans adaptation).
 - **CI** : ajouter `composer install`, `phpstan analyse --level=6`, `phpunit` dans `.github/workflows/ci.yml`, en gardant les smoke tests Docker.
 
-### Étape 6 — Nettoyage pré-public
+### Étape 6 — Nettoyage pré-public ✅
 
-- Relire `.gitignore` (`.env`, `docker-data/`, `public/uploads/` déjà vérifiés par la CI).
-- Mettre à jour le README (section stack : mentionner PHPUnit/PHPStan en dev-only si adoptés ; section « Contribution »).
-- **Décision** : ajouter une licence (ex. MIT) avant publication.
-- Vérifier qu'aucune donnée sensible n'est dans l'historique (`git log --all -- .env` etc.) — si oui, réécrire l'historique avant la mise en public.
+- ✅ **PR 5 faite** : historique git audité (aucun `.env`, `docker-data/` ou `public/uploads/` jamais commité, aucun secret dans le contenu) ; `.gitignore` relu (déjà complet) ; README mis à jour (structure sans `Models/`, stack avec PHPStan/PHPUnit dev-only, section Tests automatisés, section Contribution, licence) ; licence **MIT** ajoutée (`LICENSE` + `composer.json`).
 
 ---
 
@@ -106,7 +103,7 @@ src/
 3. **PR 2** ✅ : entités `Image`/`Comment`/`Like` + DTO `GalleryImage` (compose une `Image` + auteur + compteurs + `liked`, immuable via `withComments`), `ImageRepository`/`CommentRepository`/`LikeRepository`, `GalleryController`/`EditorController`/`seed.php` migrés, vues galerie/éditeur sur accesseurs typés (`createdAt()->format(...)`), couche `src/Models/` supprimée. Tests adaptés (38 tests / 132 assertions) + tests unitaires entités/DTO.
 4. **PR 3** ✅ : `Container` + `Router`, constructeurs sans fallback, `HomeController` via `HealthCheck`.
 5. **PR 4** ✅ : services (`AuthService`, `NotificationService`), contrôleurs fins.
-6. **PR 5** : nettoyage pré-public (README, licence, historique).
+6. **PR 5** ✅ : nettoyage pré-public (README, licence MIT, audit d'historique sain).
 
 ## Risques
 
