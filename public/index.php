@@ -6,11 +6,14 @@ require dirname(__DIR__) . '/src/bootstrap.php';
 
 use App\Core\Container;
 use App\Core\Database;
+use App\Core\Mailer;
+use App\Core\MailerInterface;
 use App\Core\Router;
 
-// Conteneur : seule fabrique explicite nécessaire (PDO), le reste est autowiré.
+// Conteneur : fabriques explicites (PDO, MailerInterface), le reste est autowiré.
 $container = new Container();
 $container->set(PDO::class, static fn (): PDO => Database::pdo());
+$container->set(MailerInterface::class, static fn (): MailerInterface => new Mailer());
 
 $router = new Router($container);
 

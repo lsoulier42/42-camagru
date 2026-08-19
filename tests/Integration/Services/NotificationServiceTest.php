@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Integration\Services;
 
 use App\Core\Database;
-use App\Core\Mailer;
 use App\Repositories\UserRepository;
 use App\Services\NotificationService;
+use Tests\FakeMailer;
 use Tests\TestCase;
 
 /**
@@ -20,12 +20,14 @@ final class NotificationServiceTest extends TestCase
 {
     private UserRepository $users;
     private NotificationService $notifications;
+    private FakeMailer $mailer;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->users = new UserRepository(Database::pdo());
-        $this->notifications = new NotificationService($this->users, new Mailer());
+        $this->mailer = new FakeMailer();
+        $this->notifications = new NotificationService($this->users, $this->mailer);
     }
 
     public function testNotificationGuardsDoNotCrash(): void
@@ -43,10 +45,11 @@ final class NotificationServiceTest extends TestCase
         // Préférence désactivée : ignoré sans erreur.
         $this->notifications->notifyComment($alice, $bob, 'bob', 'Hello');
 
-        // Préférence activée : le parcours d'envoi (Mailer) ne doit pas lever d'exception.
+        // Préférence activée : l'email est enregistré par le faux mailer.
         $this->users->updateProfile($alice, 'alice', 'alice@example.com', true);
         $this->notifications->notifyComment($alice, $bob, 'bob', 'Hello');
 
-        self::assertTrue(true);
+        self::assertCount(1, $this->mailer->sent);
+        self::assertSame('alice@example.com', $this->mailer->sent[0]['to']);
     }
 }

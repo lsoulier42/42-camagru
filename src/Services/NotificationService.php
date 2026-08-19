@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Env;
-use App\Core\Mailer;
+use App\Core\MailerInterface;
 use App\Repositories\UserRepository;
 
 /**
@@ -16,7 +16,7 @@ final class NotificationService
 {
     public function __construct(
         private readonly UserRepository $users,
-        private readonly Mailer $mailer,
+        private readonly MailerInterface $mailer,
     ) {
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Env;
-use App\Core\Mailer;
+use App\Core\MailerInterface;
 use App\Entities\User;
 use App\Repositories\TokenRepository;
 use App\Repositories\UserRepository;
@@ -23,7 +23,7 @@ final class AuthService
     public function __construct(
         private readonly UserRepository $users,
         private readonly TokenRepository $tokens,
-        private readonly Mailer $mailer,
+        private readonly MailerInterface $mailer,
     ) {
     }
 
