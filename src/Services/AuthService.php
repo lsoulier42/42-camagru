@@ -23,6 +23,7 @@ final class AuthService
     public function __construct(
         private readonly UserRepository $users,
         private readonly TokenRepository $tokens,
+        private readonly Mailer $mailer,
     ) {
     }
 
@@ -79,7 +80,7 @@ final class AuthService
             . '<p>Bienvenue sur Camagru ! Pour activer votre compte, cliquez sur le lien suivant :</p>'
             . '<p><a href="' . $link . '">' . $link . '</a></p>'
             . '<p>Ce lien est valable 24 heures et ne fonctionne qu\'une seule fois.</p>';
-        Mailer::send($email, 'Confirmez votre compte Camagru', $body);
+        $this->mailer->send($email, 'Confirmez votre compte Camagru', $body);
     }
 
     /** Active le compte si le jeton est valide (usage unique) ; renvoie true si activé. */
@@ -113,7 +114,7 @@ final class AuthService
             . '<p>Vous avez demandé la réinitialisation de votre mot de passe Camagru :</p>'
             . '<p><a href="' . $link . '">' . $link . '</a></p>'
             . '<p>Ce lien est valable 1 heure et ne fonctionne qu\'une seule fois.</p>';
-        Mailer::send($email, 'Réinitialisation de votre mot de passe', $body);
+        $this->mailer->send($email, 'Réinitialisation de votre mot de passe', $body);
     }
 
     /** Le jeton de reset est-il présent, du bon type et non expiré ? */

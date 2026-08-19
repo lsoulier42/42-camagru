@@ -14,8 +14,10 @@ use App\Repositories\UserRepository;
  */
 final class NotificationService
 {
-    public function __construct(private readonly UserRepository $users)
-    {
+    public function __construct(
+        private readonly UserRepository $users,
+        private readonly Mailer $mailer,
+    ) {
     }
 
     /** Notifie l'auteur si ce n'est pas lui-même et si sa préférence est activée. */
@@ -37,6 +39,6 @@ final class NotificationService
             . '<blockquote style="margin:1rem 0;padding:.75rem 1rem;border-left:3px solid #e1306c;background:#f6f7f9;">'
             . nl2br(htmlspecialchars($content, ENT_QUOTES)) . '</blockquote>'
             . '<p><a href="' . $link . '">Voir la galerie</a></p>';
-        Mailer::send($author->email, 'Nouveau commentaire sur votre image', $body);
+        $this->mailer->send($author->email, 'Nouveau commentaire sur votre image', $body);
     }
 }

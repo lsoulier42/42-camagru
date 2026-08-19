@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Services;
 
 use App\Core\Database;
+use App\Core\Mailer;
 use App\Repositories\TokenRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
@@ -22,7 +23,7 @@ final class AuthServiceTest extends TestCase
         $pdo = Database::pdo();
         $this->users = new UserRepository($pdo);
         $this->tokens = new TokenRepository($pdo);
-        $this->auth = new AuthService($this->users, $this->tokens);
+        $this->auth = new AuthService($this->users, $this->tokens, new Mailer());
     }
 
     private function countTokens(string $type, ?int $userId = null): int

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Services;
 
 use App\Core\Database;
+use App\Core\Mailer;
 use App\Repositories\UserRepository;
 use App\Services\NotificationService;
 use Tests\TestCase;
@@ -24,7 +25,7 @@ final class NotificationServiceTest extends TestCase
     {
         parent::setUp();
         $this->users = new UserRepository(Database::pdo());
-        $this->notifications = new NotificationService($this->users);
+        $this->notifications = new NotificationService($this->users, new Mailer());
     }
 
     public function testNotificationGuardsDoNotCrash(): void
