@@ -26,7 +26,8 @@ final class CommentRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** Commentaires d'une image, du plus ancien au plus récent (avec auteur).
+    /**
+     * Commentaires d'une image, du plus ancien au plus récent (avec auteur).
      *
      * @return list<Comment>
      */
