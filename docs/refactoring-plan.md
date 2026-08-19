@@ -2,7 +2,7 @@
 
 > Objectif : rendre le code propre et lisible avant la mise en public du repo.
 > Constat : la couche `src/Models/` mélange les concepts d'**entité** (données, état) et de
-> **repository** (accès SQL, persistance). Aucun test n'existe aujourd'hui (CI = `php -l` + smoke tests Docker).
+> **repository** (accès SQL, persistance). Aucun test n'existe aujourd'hui.
 
 ---
 
@@ -44,9 +44,9 @@ src/
 
 ### Étape 0 — Filet de sécurité (préalable, non négociable)
 
-- ✅ **FAIT (PR 0, branche `refactor/models-split`)** : `composer.json` **dev-only** (PHPUnit 12 + PHPStan 2), `phpstan.neon` (niveau 6, vert), `phpunit.xml`, tests d'intégration MySQL des 5 modèles actuels (29 tests / 85 assertions), job CI `test` (PHPStan + PHPUnit avec service MySQL), `Env::set()` pour pointer les tests vers `camagru_test`.
+- ✅ **FAIT (PR 0, branche `refactor/models-split`)** : `composer.json` **dev-only** (PHPUnit 12 + PHPStan 2), `phpstan.neon` (niveau 6, vert), `phpunit.xml`, tests d'intégration MySQL des 5 modèles actuels (29 tests / 85 assertions), `Env::set()` pour pointer les tests vers `camagru_test`.
 - ✅ **Décision actée** : option A — le runtime reste zéro-dépendance (le Dockerfile n'installe pas Composer ; `vendor/` est ignoré, `composer.lock` versionné).
-- ⚠️ Ne rien casser : chaque PR doit passer la CI existante (lint + build + test).
+- ⚠️ Ne rien casser : chaque PR doit garder `phpstan analyse` et `phpunit` verts.
 
 ### Étape 1 — Entités typées (`src/Entities/`)
 
@@ -84,11 +84,10 @@ src/
 - ✅ `AuthController` passe de 385 à ~230 lignes (requête → service → rendu/redirection ; connexion/session restent au contrôleur), `GalleryController` n'accède plus à `Mailer`/`Env`/`UserRepository` (notification via le service).
 - ✅ Tests services : 12 tests d'intégration `AuthService` (comptes, jetons, validations), 4 tests unitaires `validatePassword`, gardes de `NotificationService` — 60 tests / 175 assertions.
 
-### Étape 5 — Tests + CI
+### Étape 5 — Tests
 
 - **Unitaires** : entités (`fromRow`, propriétés publiques `readonly` promues au constructeur — PHP 8.1+, pas de getters), services purs (règles de validation) avec repositories factices.
 - **Intégration** : repositories contre la base MySQL dockerisée (réutiliser le pattern du `scripts/seed.php`). ✅ **Décision actée** : base réelle (le SQL est MySQL-typé : `ENUM`, `UNSIGNED`, `LIMIT :x` — non portable vers SQLite sans adaptation).
-- **CI** : ajouter `composer install`, `phpstan analyse --level=6`, `phpunit` dans `.github/workflows/ci.yml`, en gardant les smoke tests Docker.
 
 ### Étape 6 — Nettoyage pré-public ✅
 
@@ -96,7 +95,7 @@ src/
 
 ---
 
-## Ordre des PRs (séquençage par agrégat, chaque PR garde la CI verte)
+## Ordre des PRs (séquençage par agrégat, chaque PR garde les tests verts)
 
 1. **PR 0** ✅ : filet de sécurité (Composer dev, PHPStan, PHPUnit, tests d'intégration sur l'existant).
 2. **PR 1** ✅ : entités `User`/`Token` + `UserRepository`/`TokenRepository`, `AuthController` et `GalleryController` (notification auteur) migrés, vue profil sur accesseurs typés, `seed.php` migré, `Models/User.php` + `Models/Token.php` supprimés. Injection manuelle (fallback `Database::pdo()`) en attendant le conteneur de la PR 3. Tests adaptés (32 tests / 101 assertions) + tests unitaires entités.
