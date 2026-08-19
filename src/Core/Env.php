@@ -11,6 +11,9 @@ namespace App\Core;
  */
 final class Env
 {
+    /** Valeur par défaut de APP_URL (développement local). */
+    public const string DEFAULT_APP_URL = 'http://localhost:8080';
+
     /** @var array<string, string> */
     private static array $values = [];
 

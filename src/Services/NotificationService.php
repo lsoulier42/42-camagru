@@ -30,7 +30,7 @@ final class NotificationService
             return;
         }
 
-        $link = Env::get('APP_URL', 'http://localhost:8080') . '/gallery';
+        $link = Env::get('APP_URL', Env::DEFAULT_APP_URL) . '/gallery';
         $body = '<p>Bonjour <strong>' . htmlspecialchars($author->username, ENT_QUOTES) . '</strong>,</p>'
             . '<p>' . htmlspecialchars($commenterUsername, ENT_QUOTES)
             . ' a commenté votre image :</p>'

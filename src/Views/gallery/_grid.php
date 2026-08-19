@@ -12,7 +12,7 @@ use App\Entities\GalleryImage;
 /** @var int $total Nombre total d'images. */
 
 $currentUserId = $_SESSION['user_id'] ?? null;
-$appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
+$appUrl = rtrim((string) Env::get('APP_URL', Env::DEFAULT_APP_URL), '/');
 ?>
 <p class="muted" id="gallery-count">
     <?= (int) $total ?> image<?= $total > 1 ? 's' : '' ?> — page <?= (int) $page ?> / <?= (int) $totalPages ?>

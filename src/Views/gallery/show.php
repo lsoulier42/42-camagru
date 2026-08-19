@@ -14,7 +14,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 
 // --- Partage social : citation = dernier commentaire (ou message par défaut) ---
 $comments = $image->comments;
-$appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
+$appUrl = rtrim((string) Env::get('APP_URL', Env::DEFAULT_APP_URL), '/');
 $share = ShareData::forImage($image, $appUrl);
 ?>
 <section class="page-head">
