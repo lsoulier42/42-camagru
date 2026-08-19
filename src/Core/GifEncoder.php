@@ -99,7 +99,10 @@ final class GifEncoder
         ];
     }
 
-    /** @param list<array{descriptor: string, lct: string, data: string}> $parsed */
+    /**
+     * @param list<array{descriptor: string, lct: string, data: string}> $parsed
+     * @return array{int, int}
+     */
     private static function dimensions(array $parsed): array
     {
         $descriptor = $parsed[0]['descriptor'];

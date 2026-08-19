@@ -52,4 +52,10 @@ final class Env
     {
         return self::$values[$key] ?? $default;
     }
+
+    /** Surcharge une valeur (priorité sur le .env) — utilisé par les tests. */
+    public static function set(string $key, string $value): void
+    {
+        self::$values[$key] = $value;
+    }
 }

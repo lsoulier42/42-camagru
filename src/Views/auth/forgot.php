@@ -3,6 +3,9 @@
 use App\Core\Csrf;
 use App\Core\View;
 
+/** @var array<string, string> $old Valeurs déjà saisies en cas d'erreur. */
+/** @var list<string> $errors Erreurs de validation. */
+
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
 <div class="auth-card">
