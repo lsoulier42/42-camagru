@@ -45,9 +45,10 @@ Projet de fin d'année de l'école **42** — développé en **PHP vanilla** (z�
 | Frontend | HTML, CSS pur, **JavaScript natif** (aucune librairie) |
 | Base de données | **MySQL 8** (utf8mb4) |
 | Email (dev) | **MailHog** (UI sur `http://localhost:8025`) |
+| Qualité (dev) | **PHPStan** (niveau 6) + **PHPUnit** (intégration MySQL) |
 | Déploiement | **Docker Compose** — une seule commande |
 
-Aucun framework, aucune dépendance Composer : uniquement la bibliothèque standard PHP et les API natives du navigateur.
+Aucun framework ; le **runtime est zéro-dépendance** (bibliothèque standard PHP et API natives du navigateur). Composer n'est utilisé qu'en **développement** : outils de qualité et tests, jamais dans l'image de production.
 
 ---
 
@@ -88,10 +89,11 @@ docker compose exec web php scripts/seed.php
 │   └── assets/overlays/    # Images superposables (PNG alpha)
 ├── scripts/                # seed.php, generate_overlays.php
 └── src/
-    ├── Controllers/        # Auth, Gallery, Editor, Home
-    ├── Core/               # Router, Database, Csrf, Session, Mailer,
-    │                       # Compositor, GifEncoder…
-    ├── Models/             # User, Token, Image, Like, Comment
+    ├── Controllers/        # Fins : requête → service → vue (Auth, Gallery, Editor, Home)
+    ├── Core/               # Router, Container, Database, Csrf, Session, Mailer…
+    ├── Entities/           # Entités immuables typées (User, Image, Comment…)
+    ├── Repositories/       # Accès SQL, PDO injecté (User, Image, Like…)
+    ├── Services/           # Logique métier (AuthService, NotificationService)
     └── Views/              # Vues + layout (header/main/footer)
 ```
 
@@ -113,17 +115,34 @@ docker compose exec web php scripts/seed.php
 
 ## 🧪 Tests
 
-Le projet a été vérifié de bout en bout (curl + navigateur réel) :
+**Tests automatisés** (outils dev-only, voir « Contribution ») :
+
+- `docker compose exec web vendor/bin/phpunit` — **60 tests** : intégration MySQL sur une base dédiée `camagru_test` (repositories, services, jetons) et unitaires (entités, DTO, conteneur, règles de validation). La base de développement n'est jamais touchée.
+- `vendor/bin/phpstan analyse` — analyse statique **niveau 6**, zéro erreur.
+
+Le projet a aussi été vérifié de bout en bout (curl + navigateur réel) :
 
 - Flux complets : inscription → email → confirmation → connexion → profil → déconnexion ; reset de mot de passe.
 - Galerie : pagination, tri, likes/commentaires, notification email (et désactivation), défilement infini.
 - Éditeur : capture webcam, superposition serveur vérifiée **au pixel près**, uploads refusés (faux PNG, `.php`, `.exe`), suppression.
 - Sécurité : SQLi, XSS, CSRF, anti-traversal, open-redirect — tous refusés.
 - Consoles : zéro erreur PHP / navigateur / réseau ; responsive validé en mobile et desktop.
-- **Intégration continue** (GitHub Actions) : lint PHP + JavaScript, vérification qu'aucun fichier sensible n'est committé, build Docker et smoke-test des pages publiques à chaque push.
+- **Intégration continue** (GitHub Actions) : lint PHP + JavaScript, **PHPStan**, **PHPUnit** (service MySQL dédié), vérification qu'aucun fichier sensible n'est committé, build Docker et smoke-test des pages publiques à chaque push.
+
+---
+
+## 🤝 Contribution
+
+1. Créez une branche depuis `main` (`git checkout -b feat/…`) et assurez-vous que tout reste vert avant d'ouvrir une pull request :
+   ```bash
+   vendor/bin/phpstan analyse
+   docker compose exec web vendor/bin/phpunit
+   ```
+2. La CI (lint, analyse statique, tests, build Docker) valide chaque pull request automatiquement.
+3. Ne committez **jamais** `.env`, `docker-data/` ou `public/uploads/` — vérifiés par la CI.
 
 ---
 
 ## 📄 Licence
 
-Projet pédagogique réalisé dans le cadre de l'école **42**. Aucune licence particulière.
+Projet pédagogique réalisé dans le cadre de l'école **42**, publié sous licence **MIT** — voir [LICENSE](LICENSE).

@@ -2,7 +2,7 @@
     "name": "lsoulier42/camagru",
     "description": "Camagru — petite application web type Instagram (projet 42)",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": ">=8.3"
     },
