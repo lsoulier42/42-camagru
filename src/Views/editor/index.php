@@ -3,6 +3,9 @@
 use App\Core\Csrf;
 use App\Core\View;
 
+/** @var list<string> $overlays Noms des PNG superposables disponibles. */
+/** @var list<array<string, mixed>> $myImages Images de l'utilisateur (vignettes). */
+
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
 <section class="page-head">

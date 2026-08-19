@@ -99,7 +99,10 @@ final class Image
         return (int) Database::pdo()->lastInsertId();
     }
 
-    /** Images d'un utilisateur, récentes d'abord (vignettes de l'éditeur). */
+    /** Images d'un utilisateur, récentes d'abord (vignettes de l'éditeur).
+     *
+     * @return list<array<string, mixed>>
+     */
     public static function findByUser(int $userId): array
     {
         $stmt = Database::pdo()->prepare(

@@ -184,7 +184,10 @@ final class GalleryController extends BaseController
         return $default;
     }
 
-    /** Rendu du fragment grille + pagination (page complète ou AJAX). */
+    /** Rendu du fragment grille + pagination (page complète ou AJAX).
+     *
+     * @param list<array<string, mixed>> $images
+     */
     private function renderGrid(array $images, int $page, int $totalPages, int $total): string
     {
         ob_start();

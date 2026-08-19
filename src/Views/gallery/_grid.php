@@ -4,6 +4,11 @@ use App\Core\Csrf;
 use App\Core\Env;
 use App\Core\View;
 
+/** @var list<array<string, mixed>> $images Images de la page courante (avec commentaires). */
+/** @var int $page Numéro de page courant. */
+/** @var int $totalPages Nombre total de pages. */
+/** @var int $total Nombre total d'images. */
+
 $currentUserId = $_SESSION['user_id'] ?? null;
 $appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
 ?>

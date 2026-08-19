@@ -18,7 +18,10 @@ final class User
         return $row === false ? null : $row;
     }
 
-    /** Recherche par username OU email (page de connexion). */
+    /** Recherche par username OU email (page de connexion).
+     *
+     * @return array<string, mixed>|null
+     */
     public static function findByLogin(string $login): ?array
     {
         $stmt = Database::pdo()->prepare(
@@ -30,6 +33,7 @@ final class User
         return $row === false ? null : $row;
     }
 
+    /** @return array<string, mixed>|null */
     public static function findByEmail(string $email): ?array
     {
         $stmt = Database::pdo()->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');

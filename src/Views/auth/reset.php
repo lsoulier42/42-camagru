@@ -3,6 +3,9 @@
 use App\Core\Csrf;
 use App\Core\View;
 
+/** @var string $token Jeton de réinitialisation (usage unique). */
+/** @var list<string> $errors Erreurs de validation. */
+
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
 <div class="auth-card">

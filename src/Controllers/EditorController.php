@@ -260,7 +260,10 @@ final class EditorController extends BaseController
         return self::overlayDir() . '/' . $name;
     }
 
-    /** Liste des PNG superposables du dossier (fichiers sûrs uniquement). */
+    /** Liste des PNG superposables du dossier (fichiers sûrs uniquement).
+     *
+     * @return list<string>
+     */
     private static function listOverlays(): array
     {
         $files = glob(self::overlayDir() . '/*.png');
