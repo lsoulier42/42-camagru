@@ -4,17 +4,31 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Models;
 
+use App\Core\Database;
 use App\Models\Image;
 use App\Models\Like;
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Tests\TestCase;
 
 final class LikeModelTest extends TestCase
 {
+    private UserRepository $users;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->users = new UserRepository(Database::pdo());
+    }
+
+    private function createUser(string $name): int
+    {
+        return $this->users->create($name, $name . '@example.com', 'hash1');
+    }
+
     public function testToggleAddsThenRemovesLike(): void
     {
-        $alice = User::create('alice', 'alice@example.com', 'hash1');
-        $bob = User::create('bob', 'bob@example.com', 'hash1');
+        $alice = $this->createUser('alice');
+        $bob = $this->createUser('bob');
         $imageId = Image::create($alice, 'img.png');
 
         // Premier toggle : like ajouté.
@@ -28,9 +42,9 @@ final class LikeModelTest extends TestCase
 
     public function testCountForAggregatesAllUsers(): void
     {
-        $alice = User::create('alice', 'alice@example.com', 'hash1');
-        $bob = User::create('bob', 'bob@example.com', 'hash1');
-        $carol = User::create('carol', 'carol@example.com', 'hash1');
+        $alice = $this->createUser('alice');
+        $bob = $this->createUser('bob');
+        $carol = $this->createUser('carol');
         $imageId = Image::create($alice, 'img.png');
 
         Like::toggle($imageId, $bob);

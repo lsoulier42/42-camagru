@@ -4,16 +4,27 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Database;
 use App\Core\Env;
 use App\Core\Mailer;
 use App\Core\Request;
 use App\Core\Session;
 use App\Core\View;
-use App\Models\Token;
-use App\Models\User;
+use App\Repositories\TokenRepository;
+use App\Repositories\UserRepository;
 
 final class AuthController extends BaseController
 {
+    private readonly UserRepository $users;
+    private readonly TokenRepository $tokens;
+
+    /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
+    public function __construct(?UserRepository $users = null, ?TokenRepository $tokens = null)
+    {
+        $this->users = $users ?? new UserRepository(Database::pdo());
+        $this->tokens = $tokens ?? new TokenRepository(Database::pdo());
+    }
+
     // ---------------------------------------------------------------
     // Inscription
     // ---------------------------------------------------------------
@@ -50,9 +61,9 @@ final class AuthController extends BaseController
             return;
         }
 
-        $userId = User::create($username, $email, password_hash($password, PASSWORD_DEFAULT));
+        $userId = $this->users->create($username, $email, password_hash($password, PASSWORD_DEFAULT));
 
-        $token = Token::create($userId, 'confirm', 86400); // 24 h
+        $token = $this->tokens->create($userId, 'confirm', 86400); // 24 h
         $link = Env::get('APP_URL', 'http://localhost:8080') . '/confirm?token=' . $token;
         $body = '<p>Bonjour <strong>' . htmlspecialchars($username, ENT_QUOTES) . '</strong>,</p>'
             . '<p>Bienvenue sur Camagru ! Pour activer votre compte, cliquez sur le lien suivant :</p>'
@@ -71,13 +82,13 @@ final class AuthController extends BaseController
     public function confirm(): void
     {
         $token = Request::get('token');
-        $userId = $token !== '' ? Token::findUser('confirm', $token) : null;
+        $userId = $token !== '' ? $this->tokens->findUser('confirm', $token) : null;
 
         if ($userId === null) {
             Session::flash('error', 'Lien de confirmation invalide ou expiré.');
         } else {
-            User::activate($userId);
-            Token::deleteFor($userId, 'confirm'); // usage unique
+            $this->users->activate($userId);
+            $this->tokens->deleteFor($userId, 'confirm'); // usage unique
             Session::flash('success', 'Compte confirmé ! Vous pouvez maintenant vous connecter.');
         }
 
@@ -112,10 +123,10 @@ final class AuthController extends BaseController
         if ($login === '' || $password === '') {
             $errors[] = 'Renseignez votre nom d\'utilisateur et votre mot de passe.';
         } else {
-            $user = User::findByLogin($login);
-            if ($user === null || !password_verify($password, $user['password_hash'])) {
+            $user = $this->users->findByLogin($login);
+            if ($user === null || !password_verify($password, $user->passwordHash())) {
                 $errors[] = 'Identifiants incorrects.';
-            } elseif ((int) $user['is_active'] !== 1) {
+            } elseif (!$user->isActive()) {
                 $errors[] = 'Votre compte n\'est pas encore confirmé : vérifiez votre boîte mail.';
             }
         }
@@ -131,10 +142,10 @@ final class AuthController extends BaseController
 
         // Anti fixation de session : nouveau identifiant après authentification.
         session_regenerate_id(true);
-        $_SESSION['user_id'] = (int) $user['id'];
-        $_SESSION['username'] = $user['username'];
+        $_SESSION['user_id'] = $user->id();
+        $_SESSION['username'] = $user->username();
 
-        Session::flash('success', 'Bienvenue, ' . $user['username'] . ' !');
+        Session::flash('success', 'Bienvenue, ' . $user->username() . ' !');
         $this->redirect('/');
     }
 
@@ -180,9 +191,9 @@ final class AuthController extends BaseController
             return;
         }
 
-        $user = User::findByEmail($email);
-        if ($user !== null && (int) $user['is_active'] === 1) {
-            $token = Token::create((int) $user['id'], 'reset', 3600); // 1 h
+        $user = $this->users->findByEmail($email);
+        if ($user !== null && $user->isActive()) {
+            $token = $this->tokens->create($user->id(), 'reset', 3600); // 1 h
             $link = Env::get('APP_URL', 'http://localhost:8080') . '/reset?token=' . $token;
             $body = '<p>Bonjour,</p>'
                 . '<p>Vous avez demandé la réinitialisation de votre mot de passe Camagru :</p>'
@@ -199,7 +210,7 @@ final class AuthController extends BaseController
     public function showReset(): void
     {
         $token = Request::get('token');
-        if ($token === '' || Token::findUser('reset', $token) === null) {
+        if ($token === '' || $this->tokens->findUser('reset', $token) === null) {
             Session::flash('error', 'Lien de réinitialisation invalide ou expiré.');
             $this->redirect('/forgot');
         }
@@ -216,7 +227,7 @@ final class AuthController extends BaseController
         $this->verifyCsrf();
 
         $token = Request::post('token');
-        $userId = Token::findUser('reset', $token);
+        $userId = $this->tokens->findUser('reset', $token);
         if ($userId === null) {
             Session::flash('error', 'Lien de réinitialisation invalide ou expiré.');
             $this->redirect('/forgot');
@@ -235,8 +246,8 @@ final class AuthController extends BaseController
             return;
         }
 
-        User::updatePassword($userId, password_hash($password, PASSWORD_DEFAULT));
-        Token::deleteFor($userId, 'reset'); // usage unique
+        $this->users->updatePassword($userId, password_hash($password, PASSWORD_DEFAULT));
+        $this->tokens->deleteFor($userId, 'reset'); // usage unique
 
         Session::flash('success', 'Mot de passe mis à jour. Vous pouvez vous connecter.');
         $this->redirect('/login');
@@ -252,7 +263,7 @@ final class AuthController extends BaseController
             return;
         }
 
-        $user = User::findById((int) $_SESSION['user_id']);
+        $user = $this->users->findById((int) $_SESSION['user_id']);
         if ($user === null) {
             $this->redirect('/logout');
         }
@@ -280,7 +291,7 @@ final class AuthController extends BaseController
         $newPassword = Request::post('new_password');
         $newPasswordConfirm = Request::post('new_password_confirm');
 
-        $user = User::findById($userId);
+        $user = $this->users->findById($userId);
         if ($user === null) {
             $this->redirect('/logout');
         }
@@ -289,19 +300,19 @@ final class AuthController extends BaseController
 
         if (strlen($username) < 3 || strlen($username) > 50 || !preg_match('/^[A-Za-z0-9_.-]+$/', $username)) {
             $errors[] = 'Le nom d\'utilisateur doit faire 3 à 50 caractères (lettres, chiffres, . _ -).';
-        } elseif (User::usernameExists($username, $userId)) {
+        } elseif ($this->users->usernameExists($username, $userId)) {
             $errors[] = 'Ce nom d\'utilisateur est déjà pris.';
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
             $errors[] = 'Adresse email invalide.';
-        } elseif (User::emailExists($email, $userId)) {
+        } elseif ($this->users->emailExists($email, $userId)) {
             $errors[] = 'Cette adresse email est déjà utilisée.';
         }
 
         // Changement de mot de passe : mot de passe actuel obligatoire pour confirmer.
         if ($newPassword !== '' || $newPasswordConfirm !== '') {
-            if (!password_verify($currentPassword, $user['password_hash'])) {
+            if (!password_verify($currentPassword, $user->passwordHash())) {
                 $errors[] = 'Le mot de passe actuel est incorrect.';
             } else {
                 $errors = array_merge($errors, self::validatePassword($newPassword, $newPasswordConfirm));
@@ -318,9 +329,9 @@ final class AuthController extends BaseController
             return;
         }
 
-        User::updateProfile($userId, $username, $email, $notifyComments);
+        $this->users->updateProfile($userId, $username, $email, $notifyComments);
         if ($newPassword !== '') {
-            User::updatePassword($userId, password_hash($newPassword, PASSWORD_DEFAULT));
+            $this->users->updatePassword($userId, password_hash($newPassword, PASSWORD_DEFAULT));
         }
 
         $_SESSION['username'] = $username; // reflété immédiatement dans le header
@@ -340,13 +351,13 @@ final class AuthController extends BaseController
 
         if (strlen($username) < 3 || strlen($username) > 50 || !preg_match('/^[A-Za-z0-9_.-]+$/', $username)) {
             $errors[] = 'Le nom d\'utilisateur doit faire 3 à 50 caractères (lettres, chiffres, . _ -).';
-        } elseif (User::usernameExists($username)) {
+        } elseif ($this->users->usernameExists($username)) {
             $errors[] = 'Ce nom d\'utilisateur est déjà pris.';
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
             $errors[] = 'Adresse email invalide.';
-        } elseif (User::emailExists($email)) {
+        } elseif ($this->users->emailExists($email)) {
             $errors[] = 'Cette adresse email est déjà utilisée.';
         }
 

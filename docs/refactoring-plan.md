@@ -101,8 +101,8 @@ src/
 
 ## Ordre des PRs (séquençage par agrégat, chaque PR garde la CI verte)
 
-1. **PR 0** : filet de sécurité (Composer dev, PHPStan, PHPUnit, tests d'intégration sur l'existant).
-2. **PR 1** : entités + `UserRepository` + `TokenRepository`, migration `AuthController` + vues auth/profil.
+1. **PR 0** ✅ : filet de sécurité (Composer dev, PHPStan, PHPUnit, tests d'intégration sur l'existant).
+2. **PR 1** ✅ : entités `User`/`Token` + `UserRepository`/`TokenRepository`, `AuthController` et `GalleryController` (notification auteur) migrés, vue profil sur accesseurs typés, `seed.php` migré, `Models/User.php` + `Models/Token.php` supprimés. Injection manuelle (fallback `Database::pdo()`) en attendant le conteneur de la PR 3. Tests adaptés (32 tests / 101 assertions) + tests unitaires entités.
 3. **PR 2** : `ImageRepository` + `CommentRepository` + `LikeRepository` + `GalleryImage`, migration `GalleryController`/`EditorController` + vues galerie/éditeur.
 4. **PR 3** : suppression de `src/Models/`, `Container` + `Router`, `HomeController`.
 5. **PR 4** : services (`AuthService`, `NotificationService`), contrôleurs fins.

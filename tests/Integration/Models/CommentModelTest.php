@@ -4,17 +4,31 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Models;
 
+use App\Core\Database;
 use App\Models\Comment;
 use App\Models\Image;
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Tests\TestCase;
 
 final class CommentModelTest extends TestCase
 {
+    private UserRepository $users;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->users = new UserRepository(Database::pdo());
+    }
+
+    private function createUser(string $name): int
+    {
+        return $this->users->create($name, $name . '@example.com', 'hash1');
+    }
+
     public function testCreateAndFindForImage(): void
     {
-        $alice = User::create('alice', 'alice@example.com', 'hash1');
-        $bob = User::create('bob', 'bob@example.com', 'hash1');
+        $alice = $this->createUser('alice');
+        $bob = $this->createUser('bob');
         $imageId = Image::create($alice, 'img.png');
 
         $firstId = Comment::create($imageId, $bob, 'Premier commentaire');
@@ -32,7 +46,7 @@ final class CommentModelTest extends TestCase
 
     public function testFindForImageReturnsEmptyWhenNone(): void
     {
-        $alice = User::create('alice', 'alice@example.com', 'hash1');
+        $alice = $this->createUser('alice');
         $imageId = Image::create($alice, 'img.png');
 
         self::assertSame([], Comment::findForImage($imageId));
@@ -40,8 +54,8 @@ final class CommentModelTest extends TestCase
 
     public function testCountFor(): void
     {
-        $alice = User::create('alice', 'alice@example.com', 'hash1');
-        $bob = User::create('bob', 'bob@example.com', 'hash1');
+        $alice = $this->createUser('alice');
+        $bob = $this->createUser('bob');
         $imageId = Image::create($alice, 'img.png');
 
         self::assertSame(0, Comment::countFor($imageId));
