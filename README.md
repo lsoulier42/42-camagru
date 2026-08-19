@@ -6,6 +6,8 @@
 
 Projet de fin d'année de l'école **42** — développé en **PHP vanilla** (zéro dépendance), **JavaScript natif** et **Docker**.
 
+[![CI](https://github.com/lsoulier42/42-camagru/actions/workflows/ci.yml/badge.svg)](https://github.com/lsoulier42/42-camagru/actions/workflows/ci.yml)
+
 </div>
 
 ---
@@ -24,6 +26,14 @@ Projet de fin d'année de l'école **42** — développé en **PHP vanilla** (z�
 - ♾️ **Pagination infinie** (IntersectionObserver), bouton « Suivant » conservé comme repli sans JS.
 - 🔗 **Partage social** X / Facebook par image (dernier commentaire en citation) + **page de détail** `/image/{id}`.
 - 🎞️ **Export GIF animé** : l'overlay pulse et flotte sur la capture, encodé **côté serveur en PHP pur** (GIF89a + NETSCAPE2.0).
+
+---
+
+## 📸 Aperçu
+
+| Accueil | Galerie publique |
+|---|---|
+| ![Accueil](docs/screenshots/home.png) | ![Galerie](docs/screenshots/gallery.png) |
 
 ---
 
@@ -110,6 +120,7 @@ Le projet a été vérifié de bout en bout (curl + navigateur réel) :
 - Éditeur : capture webcam, superposition serveur vérifiée **au pixel près**, uploads refusés (faux PNG, `.php`, `.exe`), suppression.
 - Sécurité : SQLi, XSS, CSRF, anti-traversal, open-redirect — tous refusés.
 - Consoles : zéro erreur PHP / navigateur / réseau ; responsive validé en mobile et desktop.
+- **Intégration continue** (GitHub Actions) : lint PHP + JavaScript, vérification qu'aucun fichier sensible n'est committé, build Docker et smoke-test des pages publiques à chaque push.
 
 ---
 
