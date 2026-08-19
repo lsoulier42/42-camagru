@@ -4,17 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Models;
 
+use App\Core\Database;
 use App\Models\Comment;
 use App\Models\Image;
 use App\Models\Like;
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Tests\TestCase;
 
 final class ImageModelTest extends TestCase
 {
+    private UserRepository $users;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->users = new UserRepository(Database::pdo());
+    }
+
     private function createUser(string $name): int
     {
-        return User::create($name, $name . '@example.com', 'hash1');
+        return $this->users->create($name, $name . '@example.com', 'hash1');
     }
 
     public function testCreateAndFindById(): void

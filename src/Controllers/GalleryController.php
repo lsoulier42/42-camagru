@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Database;
 use App\Core\Env;
 use App\Core\Mailer;
 use App\Core\Request;
@@ -12,11 +13,19 @@ use App\Core\View;
 use App\Models\Comment;
 use App\Models\Image;
 use App\Models\Like;
-use App\Models\User;
+use App\Repositories\UserRepository;
 
 final class GalleryController extends BaseController
 {
     private const int PER_PAGE = 6; // exigence du sujet : au moins 5 par page
+
+    private readonly UserRepository $users;
+
+    /** Injection manuelle en attendant le conteneur (PR 3 du plan de refacto). */
+    public function __construct(?UserRepository $users = null)
+    {
+        $this->users = $users ?? new UserRepository(Database::pdo());
+    }
 
     public function index(): void
     {
@@ -137,16 +146,16 @@ final class GalleryController extends BaseController
         // Notification email à l'auteur (sauf si c'est lui-même ou préférence désactivée).
         $authorId = (int) $image['author_id'];
         if ($authorId !== $commenterId) {
-            $author = User::findById($authorId);
-            if ($author !== null && (int) $author['notify_comments'] === 1) {
+            $author = $this->users->findById($authorId);
+            if ($author !== null && $author->notifyComments()) {
                 $link = Env::get('APP_URL', 'http://localhost:8080') . '/gallery';
-                $body = '<p>Bonjour <strong>' . htmlspecialchars((string) $author['username'], ENT_QUOTES) . '</strong>,</p>'
+                $body = '<p>Bonjour <strong>' . htmlspecialchars($author->username(), ENT_QUOTES) . '</strong>,</p>'
                     . '<p>' . htmlspecialchars((string) $_SESSION['username'], ENT_QUOTES)
                     . ' a commenté votre image :</p>'
                     . '<blockquote style="margin:1rem 0;padding:.75rem 1rem;border-left:3px solid #e1306c;background:#f6f7f9;">'
                     . nl2br(htmlspecialchars($content, ENT_QUOTES)) . '</blockquote>'
                     . '<p><a href="' . $link . '">Voir la galerie</a></p>';
-                Mailer::send((string) $author['email'], 'Nouveau commentaire sur votre image', $body);
+                Mailer::send($author->email(), 'Nouveau commentaire sur votre image', $body);
             }
         }
 

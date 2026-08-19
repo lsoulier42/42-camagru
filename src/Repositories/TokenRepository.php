@@ -2,27 +2,31 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Repositories;
 
-use App\Core\Database;
+use PDO;
 
 /**
- * Jetons à usage unique (confirmation de compte, reset de mot de passe).
- * Le jeton renvoyé au client est aléatoire ; seul son hash SHA-256 est
- * stocké en base — un jeton volé en base ne peut pas être deviné.
+ * Cycle de vie des jetons à usage unique (confirmation, reset de mot de passe).
+ * Le jeton renvoyé au client est aléatoire ; seul son hash SHA-256 est stocké
+ * en base — un jeton volé en base ne peut pas être deviné.
  */
-final class Token
+final class TokenRepository
 {
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
+
     /** Crée un jeton pour un utilisateur et renvoie la valeur brute (une seule fois). */
-    public static function create(int $userId, string $type, int $ttlSeconds): string
+    public function create(int $userId, string $type, int $ttlSeconds): string
     {
         $token = bin2hex(random_bytes(32));
         $hash = hash('sha256', $token);
 
         // Un seul jeton actif par (utilisateur, type) : purge des anciens.
-        self::deleteFor($userId, $type);
+        $this->deleteFor($userId, $type);
 
-        $stmt = Database::pdo()->prepare(
+        $stmt = $this->pdo->prepare(
             'INSERT INTO tokens (user_id, type, hash, expires_at) VALUES (?, ?, ?, ?)'
         );
         $stmt->execute([
@@ -36,11 +40,11 @@ final class Token
     }
 
     /** Renvoie l'id utilisateur si le jeton est valide (type + non expiré), sinon null. */
-    public static function findUser(string $type, string $token): ?int
+    public function findUser(string $type, string $token): ?int
     {
         $hash = hash('sha256', $token);
 
-        $stmt = Database::pdo()->prepare(
+        $stmt = $this->pdo->prepare(
             'SELECT user_id FROM tokens WHERE type = ? AND hash = ? AND expires_at > NOW() LIMIT 1'
         );
         $stmt->execute([$type, $hash]);
@@ -49,9 +53,9 @@ final class Token
         return $row === false ? null : (int) $row['user_id'];
     }
 
-    public static function deleteFor(int $userId, string $type): void
+    public function deleteFor(int $userId, string $type): void
     {
-        $stmt = Database::pdo()->prepare('DELETE FROM tokens WHERE user_id = ? AND type = ?');
+        $stmt = $this->pdo->prepare('DELETE FROM tokens WHERE user_id = ? AND type = ?');
         $stmt->execute([$userId, $type]);
     }
 }
