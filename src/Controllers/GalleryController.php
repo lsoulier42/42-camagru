@@ -183,7 +183,8 @@ final class GalleryController extends BaseController
         return $default;
     }
 
-    /** Rendu du fragment grille + pagination (page complète ou AJAX).
+    /**
+     * Rendu du fragment grille + pagination (page complète ou AJAX).
      *
      * @param list<GalleryImage> $images
      */

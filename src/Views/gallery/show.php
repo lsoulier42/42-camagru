@@ -2,6 +2,7 @@
 
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Core\ShareData;
 use App\Core\View;
 use App\Entities\GalleryImage;
 
@@ -14,17 +15,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 // --- Partage social : citation = dernier commentaire (ou message par défaut) ---
 $comments = $image->comments;
 $appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
-$imageUrl = $appUrl . '/image/' . $image->id;
-$quote = 'Découvrez cette image sur Camagru !';
-if ($comments !== []) {
-    $last = end($comments);
-    $quote = trim($last->content);
-    if (mb_strlen($quote) > 120) {
-        $quote = mb_substr($quote, 0, 117) . '…';
-    }
-}
-$shareTwitter = 'https://twitter.com/intent/tweet?url=' . rawurlencode($imageUrl) . '&text=' . rawurlencode($quote);
-$shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($imageUrl);
+$share = ShareData::forImage($image, $appUrl);
 ?>
 <section class="page-head">
     <h1>Image de <?= View::e($image->author) ?></h1>
@@ -62,9 +53,9 @@ $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode(
 
         <div class="gallery-share">
             <a class="share-link share-link--x" target="_blank" rel="noopener"
-               href="<?= View::e($shareTwitter) ?>" title="Partager sur X (Twitter)">𝕏</a>
+               href="<?= View::e($share->twitterUrl) ?>" title="Partager sur X (Twitter)">𝕏</a>
             <a class="share-link share-link--fb" target="_blank" rel="noopener"
-               href="<?= View::e($shareFacebook) ?>" title="Partager sur Facebook">f</a>
+               href="<?= View::e($share->facebookUrl) ?>" title="Partager sur Facebook">f</a>
         </div>
     </div>
 

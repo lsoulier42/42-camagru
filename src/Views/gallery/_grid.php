@@ -2,6 +2,7 @@
 
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Core\ShareData;
 use App\Core\View;
 use App\Entities\GalleryImage;
 
@@ -31,20 +32,7 @@ $appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
                     </time>
                 </header>
 
-                <?php
-                // Citation pour le partage : dernier commentaire (ou message par défaut).
-                $quote = 'Découvrez cette image sur Camagru !';
-                if ($comments !== []) {
-                    $last = end($comments);
-                    $quote = trim($last->content);
-                    if (mb_strlen($quote) > 120) {
-                        $quote = mb_substr($quote, 0, 117) . '…';
-                    }
-                }
-                $imageUrl = $appUrl . '/image/' . $image->id;
-                $shareTwitter = 'https://twitter.com/intent/tweet?url=' . rawurlencode($imageUrl) . '&text=' . rawurlencode($quote);
-                $shareFacebook = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($imageUrl);
-                ?>
+                <?php $share = ShareData::forImage($image, $appUrl); ?>
                 <a class="gallery-img-link" href="/image/<?= $image->id ?>">
                     <img class="gallery-img" src="/uploads/<?= rawurlencode($image->filename) ?>"
                          alt="Image de <?= View::e($image->author) ?>" loading="lazy">
@@ -68,9 +56,9 @@ $appUrl = rtrim((string) Env::get('APP_URL', 'http://localhost:8080'), '/');
                     <span class="gallery-comments-count">💬 <?= $image->commentsCount ?></span>
                     <div class="gallery-share">
                         <a class="share-link share-link--x" target="_blank" rel="noopener"
-                           href="<?= View::e($shareTwitter) ?>" title="Partager sur X (Twitter)">𝕏</a>
+                           href="<?= View::e($share->twitterUrl) ?>" title="Partager sur X (Twitter)">𝕏</a>
                         <a class="share-link share-link--fb" target="_blank" rel="noopener"
-                           href="<?= View::e($shareFacebook) ?>" title="Partager sur Facebook">f</a>
+                           href="<?= View::e($share->facebookUrl) ?>" title="Partager sur Facebook">f</a>
                     </div>
                 </div>
 
