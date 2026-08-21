@@ -5,10 +5,13 @@ use App\Core\View;
 View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
 ?>
 <section class="hero">
+    <div class="hero-illustration" aria-hidden="true">
+        <div class="hero-face"></div>
+    </div>
     <h1>Capturez. Superposez. Partagez.</h1>
     <p class="hero-subtitle">
-        Camagru, l'application façon Instagram&nbsp;: photo via webcam ou upload,
-        superposition d'images à canal alpha, galerie publique, likes et commentaires.
+        Camagru, l'outil de création visuelle&nbsp;: photo via webcam ou upload,
+        superposition de stickers, galerie publique, likes et commentaires.
     </p>
     <div class="hero-actions">
         <a class="btn btn--primary" href="/gallery">Voir la galerie</a>

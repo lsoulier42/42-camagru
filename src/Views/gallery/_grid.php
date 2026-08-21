@@ -19,7 +19,12 @@ $appUrl = rtrim((string) Env::get('APP_URL', Env::DEFAULT_APP_URL), '/');
 </p>
 
 <?php if ($images === []): ?>
-    <p class="muted">Aucune image pour l'instant. Revenez bientôt !</p>
+    <div class="empty-state">
+        <span class="empty-state-icon" aria-hidden="true">📸</span>
+        <h2>Aucune photo pour l'instant</h2>
+        <p>Soyez le premier à partager une création&nbsp;!</p>
+        <a class="btn btn--primary" href="/editor">Lancer l'éditeur</a>
+    </div>
 <?php else: ?>
     <div class="gallery-grid">
         <?php foreach ($images as $image): ?>

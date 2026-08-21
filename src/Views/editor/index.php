@@ -72,7 +72,10 @@ View::render('layout/header', ['pageTitle' => $pageTitle ?? 'Camagru']);
     <aside class="editor-side">
         <h2>Mes photos (<?= count($myImages) ?>)</h2>
         <?php if ($myImages === []): ?>
-            <p class="muted">Aucune photo pour l'instant : capturez votre première création !</p>
+            <div class="empty-state" style="padding: 2rem 0.5rem;">
+                <span class="empty-state-icon" aria-hidden="true">🎨</span>
+                <p>Capture ta première création&nbsp;!</p>
+            </div>
         <?php else: ?>
             <div class="thumb-grid">
                 <?php foreach ($myImages as $image): ?>

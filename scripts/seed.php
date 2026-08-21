@@ -24,11 +24,15 @@ if (!is_dir($uploadsDir)) {
 }
 
 // --- 3 utilisateurs confirmés (idempotent) ---
+// Réancre username/email/mot de passe à chaque exécution : ainsi les
+// identifiants de test documentés dans le README fonctionnent toujours,
+// même si un compte pré-existant avait été modifié entre-temps.
 $pdo = Database::pdo();
 $userRepo = new UserRepository($pdo);
 $imageRepo = new ImageRepository($pdo);
 $likeRepo = new LikeRepository($pdo);
 $commentRepo = new CommentRepository($pdo);
+$seedPassword = 'Seedpass123';
 $users = [];
 foreach ([
     ['alice', 'alice@example.com'],
@@ -38,9 +42,15 @@ foreach ([
     // Comptes éventuellement déjà créés (nom ou email existant).
     $user = $userRepo->findByEmail($email) ?? $userRepo->findByLogin($name);
     if ($user === null) {
-        $id = $userRepo->create($name, $email, password_hash('Seedpass123', PASSWORD_DEFAULT));
+        $id = $userRepo->create($name, $email, password_hash($seedPassword, PASSWORD_DEFAULT));
         $userRepo->activate($id);
         $user = $userRepo->findById($id);
+    } else {
+        $stmt = $pdo->prepare(
+            'UPDATE users SET username = ?, email = ?, password_hash = ?, is_active = 1 WHERE id = ?'
+        );
+        $stmt->execute([$name, $email, password_hash($seedPassword, PASSWORD_DEFAULT), $user->id]);
+        $user = $userRepo->findById($user->id);
     }
     $users[$name] = $user->id;
 }

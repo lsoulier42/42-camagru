@@ -27,11 +27,41 @@ Projet de fin d'année de l'école **42** — développé en **PHP vanilla** (z�
 
 ---
 
-## 📸 Aperçu
+## 🎨 Design system
+
+> **Positionnement — « Le studio créatif »** : Camagru n'est pas une app d'archivage,
+> c'est un outil de création. Fond sombre, accent vif, canvas au centre de l'attention.
+> Spécification complète dans [docs/DESIGN.md](docs/DESIGN.md).
 
 | Accueil | Galerie publique |
 |---|---|
 | ![Accueil](docs/screenshots/home.png) | ![Galerie](docs/screenshots/gallery.png) |
+
+| Éditeur (« l'atelier ») | Connexion |
+|---|---|
+| ![Éditeur](docs/screenshots/editor.png) | ![Connexion](docs/screenshots/login.png) |
+
+### Tokens
+
+Déclarés **une seule fois** dans `:root` de `public/assets/css/style.css` — zéro build-step,
+CSS custom properties natif, aucun framework UI.
+
+| Catégorie | Valeurs |
+|---|---|
+| Fond | `--bg-0` `#0E0F13` · `--bg-1` `#16181D` (surfaces) · `--bg-2` `#1E2128` (hover) |
+| Texte | `--text-0` `#F5F6F7` · `--text-1` `#A6ADB8` (secondaire, jamais en pleine intensité) |
+| Accent | `--accent` `#FF5C7A` (rose vif, accent **unique**) + dégradé `#FF5C7A → #FF8A3D` réservé au logo/éditeur |
+| Typo | Titres **Space Grotesk**, corps **Inter**, libellés courts en majuscules espacées |
+| Rayon | `20px` cartes/landing · `14px` éléments · `12px` petits éléments |
+| Bordure | `1px rgba(255, 255, 255, .06)` |
+
+### Principes
+
+- **Mobile-first responsive**, aucun débordement, aucun scrollbar parasite.
+- **Focus visible au clavier** (`:focus-visible` avec outline accent).
+- **Micro-interactions** : apparition douce des stickers, feedback au clic (`scale`),
+  skeletons de chargement, états vides soignés.
+- Tout est **custom** : aucun aspect « Bootstrap/Symfony par défaut ».
 
 ---
 
@@ -70,10 +100,19 @@ Le site est alors disponible sur **http://localhost:8080** et MailHog sur **http
 ### Données de démonstration (optionnel)
 
 ```bash
-# Crée 3 comptes (alice, bob, carol — mot de passe : Seedpass123),
-# 13 images et quelques likes/commentaires.
+# Crée 3 comptes, 13 images et quelques likes/commentaires.
 docker compose exec web php scripts/seed.php
 ```
+
+### Comptes de test
+
+Une fois le seed exécuté, connectez-vous avec l'un de ces comptes :
+
+| Utilisateur | Email               | Mot de passe  |
+|-------------|---------------------|---------------|
+| `alice`     | `alice@example.com` | `Seedpass123` |
+| `bob`       | `bob@example.com`   | `Seedpass123` |
+| `carol`     | `carol@example.com` | `Seedpass123` |
 
 ---
 
